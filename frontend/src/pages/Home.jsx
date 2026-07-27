@@ -184,8 +184,8 @@ const styles = {
     fontSize: '1.5rem',
     fontWeight: '800',
     background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
-    -webkit-background-clip: 'text',
-    -webkit-text-fill-color: 'transparent',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
     letterSpacing: '-0.025em',
   },
   hero: {
