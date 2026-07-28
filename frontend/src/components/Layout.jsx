@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 
-export const Layout = ({ activeTab, onTabChange, children, subscription }) => {
+export const Layout = ({ activeTab, onTabChange, subscription }) => {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -15,6 +15,13 @@ export const Layout = ({ activeTab, onTabChange, children, subscription }) => {
     markAsRead(id);
     onTabChange('notifications');
     setShowNotifDropdown(false);
+  };
+
+  // Check collaborator permission helper
+  const canAccess = (perm) => {
+    if (user?.role === 'seller' || user?.role === 'admin') return true;
+    if (user?.role === 'collaborator' && user?.permissions?.includes(perm)) return true;
+    return false;
   };
 
   return (
@@ -36,6 +43,26 @@ export const Layout = ({ activeTab, onTabChange, children, subscription }) => {
           >
             📊 Dashboard
           </button>
+
+          {/* Product Catalog Navigation (Sellers, Collaborators with 'products' permission) */}
+          {(user?.role === 'seller' || canAccess('products')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'products' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('products')}
+            >
+              📦 Product Catalog
+            </button>
+          )}
+
+          {/* Freelance Designer Marketplace Navigation (Sellers, Designers, Collaborators with 'marketplace' permission, Admin) */}
+          {(user?.role === 'seller' || user?.role === 'designer' || user?.role === 'admin' || canAccess('marketplace')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'marketplace' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('marketplace')}
+            >
+              🎨 Marketplace
+            </button>
+          )}
           
           <button 
             style={{ ...styles.navItem, ...(activeTab === 'profile' ? styles.navItemActive : {}) }}
@@ -497,3 +524,5 @@ const styles = {
     animation: 'fadeIn 0.3s ease-out forwards',
   },
 };
+
+export default Layout;

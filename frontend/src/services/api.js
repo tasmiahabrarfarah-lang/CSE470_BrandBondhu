@@ -111,6 +111,160 @@ export const api = {
         method: 'DELETE',
         headers: getHeaders()
       }).then(handleResponse),
+
+    getAuditLogs: () =>
+      fetch(`${BASE_URL}/profile/audit-logs`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+  },
+
+  // Product Catalog Management (FR-13)
+  products: {
+    getAll: (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      return fetch(`${BASE_URL}/products${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse);
+    },
+
+    getById: (id) => 
+      fetch(`${BASE_URL}/products/${id}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    create: (body) => 
+      fetch(`${BASE_URL}/products`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    update: (id, body) => 
+      fetch(`${BASE_URL}/products/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    delete: (id) => 
+      fetch(`${BASE_URL}/products/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    bulkUpload: (products) => 
+      fetch(`${BASE_URL}/products/bulk`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ products })
+      }).then(handleResponse),
+
+    getCategories: () => 
+      fetch(`${BASE_URL}/products/categories`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    autoPull: (id) => 
+      fetch(`${BASE_URL}/products/${id}/auto-pull`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+  },
+
+  // Freelance Designer Marketplace (FR-7)
+  marketplace: {
+    getDesigners: (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      return fetch(`${BASE_URL}/marketplace/designers${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse);
+    },
+
+    getDesignerProfile: (id) => 
+      fetch(`${BASE_URL}/marketplace/designers/${id}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    requestJob: (body) => 
+      fetch(`${BASE_URL}/marketplace/jobs`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    getJobs: (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      return fetch(`${BASE_URL}/marketplace/jobs${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse);
+    },
+
+    getJobById: (id) => 
+      fetch(`${BASE_URL}/marketplace/jobs/${id}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    acceptJob: (id) => 
+      fetch(`${BASE_URL}/marketplace/jobs/${id}/accept`, {
+        method: 'PUT',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    submitDeliverables: (id, body) => 
+      fetch(`${BASE_URL}/marketplace/jobs/${id}/deliver`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    approveDeliverables: (id) => 
+      fetch(`${BASE_URL}/marketplace/jobs/${id}/approve`, {
+        method: 'PUT',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    requestRevision: (id, revisionNotes) => 
+      fetch(`${BASE_URL}/marketplace/jobs/${id}/revision`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ revisionNotes })
+      }).then(handleResponse),
+
+    postMessage: (id, body) => 
+      fetch(`${BASE_URL}/marketplace/jobs/${id}/messages`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    submitReview: (id, body) => 
+      fetch(`${BASE_URL}/marketplace/jobs/${id}/review`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    raiseDispute: (id, reason) => 
+      fetch(`${BASE_URL}/marketplace/jobs/${id}/dispute`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ reason })
+      }).then(handleResponse),
+
+    resolveDispute: (id, body) => 
+      fetch(`${BASE_URL}/marketplace/jobs/${id}/resolve-dispute`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
   },
 
   // Subscriptions (FR-10)

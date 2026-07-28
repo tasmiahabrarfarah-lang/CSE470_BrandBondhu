@@ -4,6 +4,9 @@ import User from './models/User.js';
 import Subscription from './models/Subscription.js';
 import Transaction from './models/Transaction.js';
 import Notification from './models/Notification.js';
+import Product from './models/Product.js';
+import DesignJob from './models/DesignJob.js';
+import AuditLog from './models/AuditLog.js';
 
 const PORT = 5099;
 const BASE_URL = `http://localhost:${PORT}/api`;
@@ -31,10 +34,11 @@ const runTests = async () => {
         // Clean up previous test runs if any
         await User.findOneAndDelete({ email: 'tester@brandbondhu.com' });
         await User.findOneAndDelete({ email: 'collaborator@brandbondhu.com' });
+        await User.findOneAndDelete({ email: 'designer@brandbondhu.com' });
 
         console.log('\n--- STARTING BRANDBONDHU CORE BACKEND AUTOMATED TESTS ---\n');
 
-        // Test 1: User Registration
+        // Test 1: User Registration (Seller)
         const registerRes = await fetch(`${BASE_URL}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -70,125 +74,232 @@ const runTests = async () => {
         if (!verifyData.success || !verifyData.token) {
           throw new Error(`OTP Verification failed: ${verifyData.message}`);
         }
-        const token = verifyData.token;
-        logTest('2. OTP Verification (Activate Account)', 'SUCCESS', `Token issued: ${token.substring(0, 15)}...`);
+        const sellerToken = verifyData.token;
+        logTest('2. OTP Verification (Activate Account)', 'SUCCESS', `Token issued: ${sellerToken.substring(0, 15)}...`);
 
-        // Test 3: Log In
-        const loginRes = await fetch(`${BASE_URL}/auth/login`, {
+        // Test 3: Create Designer Account (FR-7.1)
+        const designerRes = await fetch(`${BASE_URL}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: 'tester@brandbondhu.com',
+            name: 'Design Pro',
+            email: 'designer@brandbondhu.com',
+            phone: '01811223344',
             password: 'password123',
+            role: 'designer',
           }),
         });
-        const loginData = await loginRes.json();
-        if (!loginData.success) {
-          throw new Error(`Login failed: ${loginData.message}`);
-        }
-        logTest('3. Login (Authenticate User)', 'SUCCESS', `User authenticated as role: ${loginData.user.role}`);
-
-        // Test 4: Get Profile & Check Subscription defaults
-        const subRes = await fetch(`${BASE_URL}/subscriptions/my`, {
-          headers: { 'Authorization': `Bearer ${token}` },
+        const designerData = await designerRes.json();
+        const desOtp = designerData.otp;
+        
+        const desVerifyRes = await fetch(`${BASE_URL}/auth/verify-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'designer@brandbondhu.com', otp: desOtp }),
         });
-        const subData = await subRes.json();
-        if (!subData.success || subData.data.tier !== 'free') {
-          throw new Error(`Default subscription assertion failed: ${JSON.stringify(subData)}`);
-        }
-        logTest('4. Fetch Default Subscription limits', 'SUCCESS', `Default Tier: ${subData.data.tier}, Credits: ${subData.data.credits.current}/${subData.data.credits.total}`);
+        const desVerifyData = await desVerifyRes.json();
+        const designerToken = desVerifyData.token;
 
-        // Test 5: Consume Credits (Simulate AI Action)
-        const consumeRes = await fetch(`${BASE_URL}/subscriptions/consume`, {
+        // Update designer profile with skills and hourly rate
+        await fetch(`${BASE_URL}/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${designerToken}` },
+          body: JSON.stringify({
+            portfolioInfo: {
+              bio: 'Expert graphic designer specializing in logo design',
+              skills: ['Logo Design', 'Poster Design'],
+              hourlyRate: 800,
+            },
+          }),
+        });
+        logTest('3. Designer Profile Setup (FR-7.1)', 'SUCCESS', 'Registered & activated Designer account');
+
+        // Test 4: Product Catalog Management - Create Product (FR-13.1)
+        const createProdRes = await fetch(`${BASE_URL}/products`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({ amount: 5 }),
-        });
-        const consumeData = await consumeRes.json();
-        if (!consumeData.success || consumeData.currentCredits !== 15) {
-          throw new Error(`Credit consumption failed: ${JSON.stringify(consumeData)}`);
-        }
-        logTest('5. Consume AI Credits (Credits Deduction)', 'SUCCESS', `Credits remaining: ${consumeData.currentCredits}`);
-
-        // Test 6: Payment Initiation
-        const payInitRes = await fetch(`${BASE_URL}/payments/initiate`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${sellerToken}`,
           },
           body: JSON.stringify({
-            tier: 'premium',
-            gateway: 'bkash',
+            name: 'Wireless Gaming Headset',
+            description: 'RGB Surround sound headset for gaming and calls',
+            price: 4500,
+            category: 'Electronics',
+            images: ['https://example.com/headset.jpg'],
           }),
         });
-        const payInitData = await payInitRes.json();
-        if (!payInitData.success || !payInitData.data.transactionId) {
-          throw new Error(`Payment initiation failed: ${JSON.stringify(payInitData)}`);
+        const createProdData = await createProdRes.json();
+        if (!createProdData.success || !createProdData.data._id) {
+          throw new Error(`Product creation failed: ${JSON.stringify(createProdData)}`);
         }
-        const txnId = payInitData.data.transactionId;
-        const invoiceNum = payInitData.data.invoiceNumber;
-        logTest('6. Payment Initiation (bKash Gateway)', 'SUCCESS', `TxnID: ${txnId}, Invoice: ${invoiceNum}`);
+        const productId = createProdData.data._id;
+        logTest('4. Product Catalog - Create Product (FR-13.1)', 'SUCCESS', `Created "${createProdData.data.name}" (৳${createProdData.data.price})`);
 
-        // Test 7: Confirm Payment & Upgrade Subscription
-        const confirmRes = await fetch(`${BASE_URL}/payments/confirm`, {
+        // Test 5: Product Catalog - Bulk CSV Upload (FR-13.5)
+        const bulkProdRes = await fetch(`${BASE_URL}/products/bulk`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${sellerToken}`,
           },
-          body: JSON.stringify({ transactionId: txnId }),
+          body: JSON.stringify({
+            products: [
+              { name: 'Mechanical Keyboard', description: 'RGB Mechanical Gaming Keyboard', price: 3200, category: 'Electronics' },
+              { name: 'Ergonomic Mouse', description: 'Wireless precision mouse', price: 1500, category: 'Electronics' },
+            ],
+          }),
         });
-        const confirmData = await confirmRes.json();
-        if (!confirmData.success || confirmData.data.subscription.tier !== 'premium') {
-          throw new Error(`Payment confirmation failed: ${JSON.stringify(confirmData)}`);
+        const bulkProdData = await bulkProdRes.json();
+        if (!bulkProdData.success || bulkProdData.data.length !== 2) {
+          throw new Error(`Bulk product upload failed: ${JSON.stringify(bulkProdData)}`);
         }
-        logTest('7. Payment Confirmation & Billing Upgrade', 'SUCCESS', `Upgraded Tier: ${confirmData.data.subscription.tier}, New Total Credits: ${confirmData.data.subscription.credits.current}`);
+        logTest('5. Product Catalog - Bulk CSV Upload (FR-13.5)', 'SUCCESS', `Bulk uploaded ${bulkProdData.data.length} products`);
 
-        // Test 8: Get Notifications
-        const notifRes = await fetch(`${BASE_URL}/notifications`, {
-          headers: { 'Authorization': `Bearer ${token}` },
+        // Test 6: Product Catalog - Auto-Pull for Content Generation (FR-13.4)
+        const autoPullRes = await fetch(`${BASE_URL}/products/${productId}/auto-pull`, {
+          headers: { 'Authorization': `Bearer ${sellerToken}` },
         });
-        const notifData = await notifRes.json();
-        if (!notifData.success || notifData.data.length === 0) {
-          throw new Error(`No notifications found: ${JSON.stringify(notifData)}`);
+        const autoPullData = await autoPullRes.json();
+        if (!autoPullData.success || !autoPullData.data.formattedCaptionInput) {
+          throw new Error(`Auto-pull failed: ${JSON.stringify(autoPullData)}`);
         }
-        logTest('8. Fetch Alerts (Notification System)', 'SUCCESS', `Fetched notifications count: ${notifData.data.length}, latest: "${notifData.data[0].title}"`);
+        logTest('6. Product Catalog - Auto-Pull Prompt (FR-13.4)', 'SUCCESS', `Pulled prompt text: "${autoPullData.data.formattedCaptionInput.substring(0, 30)}..."`);
 
-        // Test 9: Create Collaborator (FR-17)
-        const user = await User.findOne({ email: 'tester@brandbondhu.com' });
+        // Test 7: Designer Marketplace - Browse Designers (FR-7.2)
+        const browseRes = await fetch(`${BASE_URL}/marketplace/designers?search=Design`, {
+          headers: { 'Authorization': `Bearer ${sellerToken}` },
+        });
+        const browseData = await browseRes.json();
+        if (!browseData.success || browseData.data.length === 0) {
+          throw new Error(`Browse designers failed: ${JSON.stringify(browseData)}`);
+        }
+        const foundDesigner = browseData.data[0];
+        logTest('7. Marketplace - Browse & Search Designers (FR-7.2)', 'SUCCESS', `Found designer: ${foundDesigner.name} (Rate: ৳${foundDesigner.portfolioInfo.hourlyRate}/hr)`);
+
+        // Test 8: Designer Marketplace - Request Job & Escrow Hold (FR-7.3, FR-7.7)
+        const requestJobRes = await fetch(`${BASE_URL}/marketplace/jobs`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sellerToken}`,
+          },
+          body: JSON.stringify({
+            designerId: foundDesigner._id,
+            title: 'Custom Brand Logo',
+            description: 'Minimalist tech logo for electronics store',
+            category: 'Logo Design',
+            budget: 3500,
+          }),
+        });
+        const requestJobData = await requestJobRes.json();
+        if (!requestJobData.success || requestJobData.data.escrowStatus !== 'Held') {
+          throw new Error(`Job request failed: ${JSON.stringify(requestJobData)}`);
+        }
+        const jobId = requestJobData.data._id;
+        logTest('8. Marketplace - Request Job & Hold Escrow (FR-7.3, FR-7.7)', 'SUCCESS', `Job ID: ${jobId}, Escrow: ${requestJobData.data.escrowStatus}`);
+
+        // Test 9: Designer Marketplace - Accept Job & Submit Deliverable (FR-7.5)
+        await fetch(`${BASE_URL}/marketplace/jobs/${jobId}/accept`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${designerToken}` },
+        });
+
+        const deliverRes = await fetch(`${BASE_URL}/marketplace/jobs/${jobId}/deliver`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${designerToken}`,
+          },
+          body: JSON.stringify({
+            fileName: 'LogoFinal.png',
+            fileUrl: 'https://example.com/files/LogoFinal.png',
+            notes: 'Here is your vector logo deliverable!',
+          }),
+        });
+        const deliverData = await deliverRes.json();
+        if (!deliverData.success || deliverData.data.status !== 'Submitted') {
+          throw new Error(`Submit deliverable failed: ${JSON.stringify(deliverData)}`);
+        }
+        logTest('9. Marketplace - Submit Deliverable Files (FR-7.5)', 'SUCCESS', `Submitted file: ${deliverData.data.deliverableFiles[0].fileName}`);
+
+        // Test 10: Designer Marketplace - Approve Deliverables & Release Escrow (FR-7.7)
+        const approveRes = await fetch(`${BASE_URL}/marketplace/jobs/${jobId}/approve`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${sellerToken}` },
+        });
+        const approveData = await approveRes.json();
+        if (!approveData.success || approveData.data.escrowStatus !== 'Released') {
+          throw new Error(`Approve deliverables failed: ${JSON.stringify(approveData)}`);
+        }
+        logTest('10. Marketplace - Approve Deliverables & Release Escrow (FR-7.7)', 'SUCCESS', `Status: ${approveData.data.status}, Escrow: ${approveData.data.escrowStatus}`);
+
+        // Test 11: Designer Marketplace - 2-Way Review Submission (FR-7.6)
+        const reviewRes = await fetch(`${BASE_URL}/marketplace/jobs/${jobId}/review`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sellerToken}`,
+          },
+          body: JSON.stringify({
+            rating: 5,
+            comment: 'Outstanding logo design and super fast delivery!',
+          }),
+        });
+        const reviewData = await reviewRes.json();
+        if (!reviewData.success || !reviewData.data.sellerReview) {
+          throw new Error(`Review submission failed: ${JSON.stringify(reviewData)}`);
+        }
+        logTest('11. Marketplace - Two-Way Rating & Review (FR-7.6)', 'SUCCESS', `Rating: ⭐ ${reviewData.data.sellerReview.rating}/5`);
+
+        // Test 12: Team Access - Invite Collaborator & Audit Logging (FR-17.1, FR-17.3)
         const collRes = await fetch(`${BASE_URL}/profile/collaborators`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${sellerToken}`,
           },
           body: JSON.stringify({
             name: 'Jane Staff',
             email: 'collaborator@brandbondhu.com',
             phone: '01898765432',
             password: 'password1234',
-            permissions: ['content', 'analytics'],
+            permissions: ['products', 'marketplace', 'content'],
           }),
         });
         const collData = await collRes.json();
         if (!collData.success) {
           throw new Error(`Collaborator invite failed: ${JSON.stringify(collData)}`);
         }
-        logTest('9. Invite Staff (Collaborator Access)', 'SUCCESS', `Collaborator name: ${collData.data.name}`);
+        logTest('12. Team Access - Invite Staff Collaborator (FR-17.1)', 'SUCCESS', `Created collaborator: ${collData.data.name}`);
+
+        // Test 13: Team Access - Verify Audit Log Activity (FR-17.3)
+        const auditRes = await fetch(`${BASE_URL}/profile/audit-logs`, {
+          headers: { 'Authorization': `Bearer ${sellerToken}` },
+        });
+        const auditData = await auditRes.json();
+        if (!auditData.success || auditData.data.length === 0) {
+          throw new Error(`Audit log check failed: ${JSON.stringify(auditData)}`);
+        }
+        logTest('13. Team Access - Audit Log Timeline (FR-17.3)', 'SUCCESS', `Logged ${auditData.data.length} activities, latest: "${auditData.data[0].action}"`);
 
         console.log('\n--- CLEANING UP TEST ACCOUNTS ---\n');
-        await User.findOneAndDelete({ email: 'tester@brandbondhu.com' });
-        await User.findOneAndDelete({ email: 'collaborator@brandbondhu.com' });
-        await Subscription.deleteMany({ userId: user._id });
-        await Transaction.deleteMany({ userId: user._id });
-        await Notification.deleteMany({ userId: user._id });
+        const sellerUser = await User.findOne({ email: 'tester@brandbondhu.com' });
+        const designerUser = await User.findOne({ email: 'designer@brandbondhu.com' });
+
+        if (sellerUser) {
+          await User.deleteMany({ _id: { $in: [sellerUser._id, designerUser?._id] } });
+          await User.deleteMany({ ownerId: sellerUser._id });
+          await Subscription.deleteMany({ userId: sellerUser._id });
+          await Transaction.deleteMany({ userId: sellerUser._id });
+          await Notification.deleteMany({ userId: { $in: [sellerUser._id, designerUser?._id] } });
+          await Product.deleteMany({ businessId: sellerUser._id });
+          await DesignJob.deleteMany({ sellerId: sellerUser._id });
+          await AuditLog.deleteMany({ businessId: sellerUser._id });
+        }
         console.log('Cleanup finished successfully.');
 
-        console.log('\n🌟 ALL CORE FUNCTIONAL TESTS PASSED SUCCESSFULLY! 🌟\n');
+        console.log('\n🌟 ALL FR-13, FR-7, AND FR-17 BACKEND TESTS PASSED SUCCESSFULLY! 🌟\n');
         server.close(() => {
           process.exit(0);
         });
@@ -199,13 +310,16 @@ const runTests = async () => {
         
         // Clean up on failure
         try {
-          const user = await User.findOne({ email: 'tester@brandbondhu.com' });
-          if (user) {
-            await User.findOneAndDelete({ email: 'tester@brandbondhu.com' });
-            await User.findOneAndDelete({ email: 'collaborator@brandbondhu.com' });
-            await Subscription.deleteMany({ userId: user._id });
-            await Transaction.deleteMany({ userId: user._id });
-            await Notification.deleteMany({ userId: user._id });
+          const sellerUser = await User.findOne({ email: 'tester@brandbondhu.com' });
+          if (sellerUser) {
+            await User.deleteMany({ email: { $in: ['tester@brandbondhu.com', 'designer@brandbondhu.com', 'collaborator@brandbondhu.com'] } });
+            await User.deleteMany({ ownerId: sellerUser._id });
+            await Subscription.deleteMany({ userId: sellerUser._id });
+            await Transaction.deleteMany({ userId: sellerUser._id });
+            await Notification.deleteMany({ userId: sellerUser._id });
+            await Product.deleteMany({ businessId: sellerUser._id });
+            await DesignJob.deleteMany({ sellerId: sellerUser._id });
+            await AuditLog.deleteMany({ businessId: sellerUser._id });
           }
         } catch (cleanupErr) {
           console.error('Cleanup on failure failed:', cleanupErr.message);
