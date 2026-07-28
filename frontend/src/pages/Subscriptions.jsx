@@ -77,22 +77,22 @@ export const Subscriptions = ({ subscription, refreshSub }) => {
       <div className="glass card" style={styles.activeCard}>
         <div style={styles.activeDetails}>
           <span style={styles.activeLabel}>CURRENT ACTIVE SERVICE PLAN</span>
-          <h2 style={styles.activePlan}>{subscription?.tier.toUpperCase()} PLAN</h2>
+          <h2 style={styles.activePlan}>{subscription?.tier?.toUpperCase() || 'FREE'} PLAN</h2>
           <p style={styles.activeText}>
-            Status: <span style={{ color: '#10b981', fontWeight: '700' }}>{subscription?.status.toUpperCase()}</span>
+            Status: <span style={{ color: '#10b981', fontWeight: '700' }}>{subscription?.status?.toUpperCase() || 'ACTIVE'}</span>
             &nbsp;|&nbsp;
-            Renews/Expires: {new Date(subscription?.endDate).toLocaleDateString()}
+            Renews/Expires: {subscription?.endDate ? new Date(subscription.endDate).toLocaleDateString() : 'N/A'}
           </p>
         </div>
         <div style={styles.activeMeter}>
           <div style={styles.meterText}>
             <span>AI Operation Credits</span>
-            <span>{subscription?.credits.current} / {subscription?.credits.total}</span>
+            <span>{subscription?.credits?.current ?? 0} / {subscription?.credits?.total ?? 20}</span>
           </div>
           <div style={styles.progressBar}>
             <div style={{
               ...styles.progressFill,
-              width: `${Math.min(100, ((subscription?.credits.current || 0) / (subscription?.credits.total || 20)) * 100)}%`
+              width: `${Math.min(100, (((subscription?.credits?.current ?? 0) / (subscription?.credits?.total ?? 20)) * 100))}%`
             }} />
           </div>
         </div>

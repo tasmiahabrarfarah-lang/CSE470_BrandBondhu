@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 
-export const Layout = ({ activeTab, onTabChange, subscription }) => {
+export const Layout = ({
+    children,
+    activeTab,
+    onTabChange,
+    subscription
+}) => {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -183,7 +188,7 @@ export const Layout = ({ activeTab, onTabChange, subscription }) => {
               {user?.profilePicture ? (
                 <img src={user.profilePicture} alt="Profile" style={styles.profilePic} />
               ) : (
-                <div style={styles.avatarPlaceholder}>{user?.name?.slice(0, 2).toUpperCase()}</div>
+                <div style={styles.avatarPlaceholder}>{user?.name?.slice(0, 2)?.toUpperCase() || ''}</div>
               )}
               <div>
                 <div style={styles.profileName}>{user?.name}</div>

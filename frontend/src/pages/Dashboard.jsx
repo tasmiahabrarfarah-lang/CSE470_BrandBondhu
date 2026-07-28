@@ -43,7 +43,7 @@ export const Dashboard = ({ subscription, refreshSub }) => {
             <span className="badge badge-primary">{user?.role}</span>
             <span className="badge badge-success">Account Active</span>
             {user?.role === 'seller' && (
-              <span className="badge badge-secondary">{subscription?.tier.toUpperCase()} PLAN</span>
+              <span className="badge badge-secondary">{subscription?.tier?.toUpperCase() || 'FREE'} PLAN</span>
             )}
           </div>
         </div>
@@ -151,7 +151,6 @@ export const Dashboard = ({ subscription, refreshSub }) => {
             </div>
             <div className="card glass" style={styles.statCard}>
               <span style={styles.statIcon}>💸</span>
-              className
               <div>
                 <div style={styles.statNum}>18,500 BDT</div>
                 <div style={styles.statLabel}>Marketplace Earnings</div>
@@ -175,7 +174,7 @@ export const Dashboard = ({ subscription, refreshSub }) => {
             </p>
             <h4 style={{ color: '#818cf8', marginTop: '16px', fontSize: '0.9rem' }}>Active Workspace Permissions:</h4>
             <ul style={styles.permissionsList}>
-              {user.permissions?.map((perm, idx) => (
+              {user?.permissions?.map((perm, idx) => (
                 <li key={idx} style={styles.permissionItem}>🔑 {perm.toUpperCase()} ACCESS</li>
               )) || <li>No custom permissions configured</li>}
             </ul>
