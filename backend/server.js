@@ -13,6 +13,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import marketplaceRoutes from './routes/marketplaceRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -43,6 +44,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Base API status route
 app.get('/api/health', (req, res) => {

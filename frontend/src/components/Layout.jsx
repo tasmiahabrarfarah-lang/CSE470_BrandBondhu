@@ -49,6 +49,16 @@ export const Layout = ({
             📊 Dashboard
           </button>
 
+          {/* Analytics Navigation (Sellers, Collaborators) */}
+          {(user?.role === 'seller' || canAccess('analytics')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'analytics' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('analytics')}
+            >
+              📈 Analytics & Insights
+            </button>
+          )}
+
           {/* Product Catalog Navigation (Sellers, Collaborators with 'products' permission) */}
           {(user?.role === 'seller' || canAccess('products')) && (
             <button 
