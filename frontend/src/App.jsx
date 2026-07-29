@@ -14,6 +14,7 @@ import { Collaborators } from './pages/Collaborators';
 import { Notifications } from './pages/Notifications';
 import { Products } from './pages/Products';
 import { Marketplace } from './pages/Marketplace';
+import { AnalyticsDashboard } from './pages/AnalyticsDashboard';
 import { Layout } from './components/Layout';
 
 // SPA Router Component Container
@@ -121,6 +122,7 @@ const InnerApp = () => {
         )}
         {activeTab === 'collaborators' && <Collaborators />}
         {activeTab === 'notifications' && <Notifications />}
+        {activeTab === 'analytics' && <AnalyticsDashboard />}
       </Layout>
     );
   }

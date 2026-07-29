@@ -332,4 +332,38 @@ export const api = {
         headers: getHeaders()
       }).then(handleResponse),
   },
+
+  // Analytics, Sentiment & Competitors (FR-5, FR-6, FR-9)
+  analytics: {
+    getDashboardStats: () => 
+      fetch(`${BASE_URL}/analytics/dashboard`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    getSentimentAnalysis: () => 
+      fetch(`${BASE_URL}/analytics/sentiment`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    syncSentimentComments: () => 
+      fetch(`${BASE_URL}/analytics/sentiment/sync`, {
+        method: 'POST',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    getCompetitors: () => 
+      fetch(`${BASE_URL}/analytics/competitors`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    addCompetitor: (body) => 
+      fetch(`${BASE_URL}/analytics/competitors`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+  },
 };
