@@ -366,4 +366,139 @@ export const api = {
         body: JSON.stringify(body)
       }).then(handleResponse),
   },
+
+  // AI Brand Identity Generation (FR-2)
+  brandKit: {
+    generate: (body) =>
+      fetch(`${BASE_URL}/brand-kit/generate`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    getAll: () =>
+      fetch(`${BASE_URL}/brand-kit`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    getActive: () =>
+      fetch(`${BASE_URL}/brand-kit/active`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    setActive: (id) =>
+      fetch(`${BASE_URL}/brand-kit/${id}/set-active`, {
+        method: 'PUT',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    update: (id, body) =>
+      fetch(`${BASE_URL}/brand-kit/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    delete: (id) =>
+      fetch(`${BASE_URL}/brand-kit/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    regenerateAsset: (id, assetType) =>
+      fetch(`${BASE_URL}/brand-kit/${id}/regenerate-asset`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ assetType })
+      }).then(handleResponse),
+  },
+
+  // Content Generation & Scheduling (FR-3)
+  content: {
+    generateCaption: (body) =>
+      fetch(`${BASE_URL}/content/generate-caption`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    createPost: (body) =>
+      fetch(`${BASE_URL}/content/posts`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    getPosts: (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      return fetch(`${BASE_URL}/content/posts${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse);
+    },
+
+    getPostById: (id) =>
+      fetch(`${BASE_URL}/content/posts/${id}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    updatePost: (id, body) =>
+      fetch(`${BASE_URL}/content/posts/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    deletePost: (id) =>
+      fetch(`${BASE_URL}/content/posts/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    triggerReminders: () =>
+      fetch(`${BASE_URL}/content/posts/trigger-reminders`, {
+        method: 'POST',
+        headers: getHeaders()
+      }).then(handleResponse),
+  },
+
+  // Poster/Banner Template Editor (FR-4)
+  templates: {
+    getAll: (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      return fetch(`${BASE_URL}/templates${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse);
+    },
+
+    getById: (id) =>
+      fetch(`${BASE_URL}/templates/${id}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+
+    createCustom: (body) =>
+      fetch(`${BASE_URL}/templates`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    updateCustom: (id, body) =>
+      fetch(`${BASE_URL}/templates/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+
+    deleteCustom: (id) =>
+      fetch(`${BASE_URL}/templates/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      }).then(handleResponse),
+  },
 };

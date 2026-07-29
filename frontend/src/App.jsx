@@ -15,6 +15,9 @@ import { Notifications } from './pages/Notifications';
 import { Products } from './pages/Products';
 import { Marketplace } from './pages/Marketplace';
 import { AnalyticsDashboard } from './pages/AnalyticsDashboard';
+import { BrandIdentity } from './pages/BrandIdentity';
+import { ContentManager } from './pages/ContentManager';
+import { BannerEditor } from './pages/BannerEditor';
 import { Layout } from './components/Layout';
 
 // SPA Router Component Container
@@ -114,6 +117,9 @@ const InnerApp = () => {
         {activeTab === 'dashboard' && (
           <Dashboard subscription={subscription} refreshSub={fetchSubscription} />
         )}
+        {activeTab === 'brandkit' && <BrandIdentity />}
+        {activeTab === 'content' && <ContentManager />}
+        {activeTab === 'templates' && <BannerEditor />}
         {activeTab === 'products' && <Products />}
         {activeTab === 'marketplace' && <Marketplace />}
         {activeTab === 'profile' && <Profile />}

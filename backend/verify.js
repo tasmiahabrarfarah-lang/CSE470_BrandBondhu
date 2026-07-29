@@ -7,6 +7,9 @@ import Notification from './models/Notification.js';
 import Product from './models/Product.js';
 import DesignJob from './models/DesignJob.js';
 import AuditLog from './models/AuditLog.js';
+import BrandKit from './models/BrandKit.js';
+import ScheduledPost from './models/ScheduledPost.js';
+import BannerTemplate from './models/BannerTemplate.js';
 
 const PORT = 5099;
 const BASE_URL = `http://localhost:${PORT}/api`;
@@ -18,7 +21,17 @@ const logTest = (step, status, details = '') => {
 
 const runTests = async () => {
   let server;
+  let mongod;
   try {
+    try {
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      mongod = await MongoMemoryServer.create();
+      process.env.MONGO_URI = mongod.getUri();
+      console.log(`Spinning up MongoMemoryServer at ${process.env.MONGO_URI}`);
+    } catch (e) {
+      // Fallback if not available
+    }
+
     // Start server programmatically
     server = app.listen(PORT, async () => {
       console.log(`Test server booted on port ${PORT}`);
@@ -264,7 +277,7 @@ const runTests = async () => {
             email: 'collaborator@brandbondhu.com',
             phone: '01898765432',
             password: 'password1234',
-            permissions: ['products', 'marketplace', 'content'],
+            permissions: ['products', 'marketplace', 'content', 'brand_kit'],
           }),
         });
         const collData = await collRes.json();
@@ -283,6 +296,122 @@ const runTests = async () => {
         }
         logTest('13. Team Access - Audit Log Timeline (FR-17.3)', 'SUCCESS', `Logged ${auditData.data.length} activities, latest: "${auditData.data[0].action}"`);
 
+        // Test 14: AI Brand Identity Generation (FR-2.1 - FR-2.4)
+        const genBrandRes = await fetch(`${BASE_URL}/brand-kit/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sellerToken}`,
+          },
+          body: JSON.stringify({
+            businessName: 'Tester Electronics',
+            industry: 'Technology & E-Commerce',
+            tone: 'Professional & Friendly',
+            colorPreference: 'Modern & Vibrantly Colored',
+            versionName: 'Version 1 - Modern',
+          }),
+        });
+        const genBrandData = await genBrandRes.json();
+        if (!genBrandData.success || !genBrandData.data.logo.svgCode) {
+          throw new Error(`Brand kit generation failed: ${JSON.stringify(genBrandData)}`);
+        }
+        const brandKitId = genBrandData.data._id;
+        logTest('14. AI Brand Identity Generation (FR-2.1 - FR-2.4)', 'SUCCESS', `Generated logo & ${genBrandData.data.taglines.length} taglines in Bangla/English for ${genBrandData.data.questionnaire.businessName}`);
+
+        // Test 15: Set Active Brand Kit (FR-2.6)
+        const setActiveRes = await fetch(`${BASE_URL}/brand-kit/${brandKitId}/set-active`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${sellerToken}` },
+        });
+        const setActiveData = await setActiveRes.json();
+        if (!setActiveData.success || !setActiveData.data.isActive) {
+          throw new Error(`Set active brand kit failed: ${JSON.stringify(setActiveData)}`);
+        }
+        logTest('15. Set Active Brand Kit (FR-2.6)', 'SUCCESS', `Set version "${setActiveData.data.versionName}" as Active`);
+
+        // Test 16: AI Caption Generation with Tone Selection (FR-3.1, FR-3.2)
+        const genCaptionRes = await fetch(`${BASE_URL}/content/generate-caption`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sellerToken}`,
+          },
+          body: JSON.stringify({
+            productId,
+            tone: 'Promotional',
+          }),
+        });
+        const genCaptionData = await genCaptionRes.json();
+        if (!genCaptionData.success || !genCaptionData.data.bn) {
+          throw new Error(`Caption generation failed: ${JSON.stringify(genCaptionData)}`);
+        }
+        logTest('16. AI Caption Generation & Tone Selection (FR-3.1, FR-3.2)', 'SUCCESS', `Generated promotional caption in Bangla & English with ${genCaptionData.data.hashtags.length} hashtags`);
+
+        // Test 17: Schedule Post Entry & Calendar Log (FR-3.3, FR-3.5)
+        const createPostRes = await fetch(`${BASE_URL}/content/posts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sellerToken}`,
+          },
+          body: JSON.stringify({
+            title: 'Gaming Headset Promo Launch',
+            caption: { activeText: genCaptionData.data.activeText },
+            platforms: ['Facebook', 'Instagram'],
+            status: 'Scheduled',
+            scheduledAt: new Date(Date.now() + 60000).toISOString(), // 1 min from now
+          }),
+        });
+        const createPostData = await createPostRes.json();
+        if (!createPostData.success || createPostData.data.status !== 'Scheduled') {
+          throw new Error(`Post scheduling failed: ${JSON.stringify(createPostData)}`);
+        }
+        logTest('17. Content Calendar - Schedule Post Entry (FR-3.3, FR-3.5)', 'SUCCESS', `Scheduled post "${createPostData.data.title}" for ${createPostData.data.platforms.join(', ')}`);
+
+        // Test 18: Trigger Reminders & Auto-Publishing (FR-3.4)
+        const triggerRes = await fetch(`${BASE_URL}/content/posts/trigger-reminders`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${sellerToken}` },
+        });
+        const triggerData = await triggerRes.json();
+        if (!triggerData.success) {
+          throw new Error(`Trigger reminders failed: ${JSON.stringify(triggerData)}`);
+        }
+        logTest('18. Content Calendar - Send Reminders & Auto-Publish (FR-3.4)', 'SUCCESS', `Processed ${triggerData.processedCount} due scheduled posts`);
+
+        // Test 19: Get Pre-built Banner Templates (FR-4.1)
+        const templatesRes = await fetch(`${BASE_URL}/templates`, {
+          headers: { 'Authorization': `Bearer ${sellerToken}` },
+        });
+        const templatesData = await templatesRes.json();
+        if (!templatesData.success || templatesData.data.length === 0) {
+          throw new Error(`Get templates failed: ${JSON.stringify(templatesData)}`);
+        }
+        logTest('19. Banner Editor - Pre-built Category Templates (FR-4.1)', 'SUCCESS', `Loaded ${templatesData.data.length} prebuilt poster templates`);
+
+        // Test 20: Save Custom Banner Template (FR-4.5)
+        const saveTmplRes = await fetch(`${BASE_URL}/templates`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sellerToken}`,
+          },
+          body: JSON.stringify({
+            title: 'Custom Tech Discount Poster',
+            category: 'Custom',
+            dimensions: { width: 1080, height: 1080 },
+            elements: [
+              { id: '1', type: 'text', content: 'FLAT 50% OFF', x: 100, y: 100, color: '#ffffff', brandField: 'none' },
+              { id: '2', type: 'text', content: 'Tester Electronics', x: 100, y: 200, color: '#6366f1', brandField: 'businessName' },
+            ],
+          }),
+        });
+        const saveTmplData = await saveTmplRes.json();
+        if (!saveTmplData.success || !saveTmplData.data._id) {
+          throw new Error(`Save custom template failed: ${JSON.stringify(saveTmplData)}`);
+        }
+        logTest('20. Banner Editor - Save Custom Reuse Template (FR-4.5)', 'SUCCESS', `Saved custom template "${saveTmplData.data.title}"`);
+
         console.log('\n--- CLEANING UP TEST ACCOUNTS ---\n');
         const sellerUser = await User.findOne({ email: 'tester@brandbondhu.com' });
         const designerUser = await User.findOne({ email: 'designer@brandbondhu.com' });
@@ -296,10 +425,13 @@ const runTests = async () => {
           await Product.deleteMany({ businessId: sellerUser._id });
           await DesignJob.deleteMany({ sellerId: sellerUser._id });
           await AuditLog.deleteMany({ businessId: sellerUser._id });
+          await BrandKit.deleteMany({ businessId: sellerUser._id });
+          await ScheduledPost.deleteMany({ businessId: sellerUser._id });
+          await BannerTemplate.deleteMany({ businessId: sellerUser._id });
         }
         console.log('Cleanup finished successfully.');
 
-        console.log('\n🌟 ALL FR-13, FR-7, AND FR-17 BACKEND TESTS PASSED SUCCESSFULLY! 🌟\n');
+        console.log('\n🌟 ALL FR-2, FR-3, FR-4, FR-7, FR-13, FR-17 BACKEND TESTS PASSED SUCCESSFULLY! 🌟\n');
         server.close(() => {
           process.exit(0);
         });
@@ -320,6 +452,9 @@ const runTests = async () => {
             await Product.deleteMany({ businessId: sellerUser._id });
             await DesignJob.deleteMany({ sellerId: sellerUser._id });
             await AuditLog.deleteMany({ businessId: sellerUser._id });
+            await BrandKit.deleteMany({ businessId: sellerUser._id });
+            await ScheduledPost.deleteMany({ businessId: sellerUser._id });
+            await BannerTemplate.deleteMany({ businessId: sellerUser._id });
           }
         } catch (cleanupErr) {
           console.error('Cleanup on failure failed:', cleanupErr.message);
