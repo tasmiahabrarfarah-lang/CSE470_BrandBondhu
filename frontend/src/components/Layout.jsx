@@ -49,6 +49,36 @@ export const Layout = ({
             📊 Dashboard
           </button>
 
+          {/* AI Brand Identity Navigation (Sellers, Collaborators with 'brand_kit' permission) */}
+          {(user?.role === 'seller' || canAccess('brand_kit')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'brandkit' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('brandkit')}
+            >
+              ✨ AI Brand Identity
+            </button>
+          )}
+
+          {/* Content Generation & Calendar Navigation (Sellers, Collaborators with 'content' permission) */}
+          {(user?.role === 'seller' || canAccess('content')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'content' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('content')}
+            >
+              📝 Content Calendar
+            </button>
+          )}
+
+          {/* Poster & Banner Template Editor Navigation (Sellers, Collaborators with 'content' permission) */}
+          {(user?.role === 'seller' || canAccess('content')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'templates' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('templates')}
+            >
+              🖼️ Banner Editor
+            </button>
+          )}
+
           {/* Analytics Navigation (Sellers, Collaborators) */}
           {(user?.role === 'seller' || canAccess('analytics')) && (
             <button 

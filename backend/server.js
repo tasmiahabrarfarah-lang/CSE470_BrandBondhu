@@ -14,12 +14,18 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import marketplaceRoutes from './routes/marketplaceRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import brandKitRoutes from './routes/brandKitRoutes.js';
+import contentRoutes from './routes/contentRoutes.js';
+import templateRoutes from './routes/templateRoutes.js';
+import { seedPrebuiltTemplates } from './controllers/templateController.js';
 
 // Load environment variables
 dotenv.config();
 
 // Connect to MongoDB
-connectDB();
+connectDB().then(() => {
+  seedPrebuiltTemplates();
+});
 
 const app = express();
 
@@ -45,6 +51,9 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/brand-kit', brandKitRoutes);
+app.use('/api/content', contentRoutes);
+app.use('/api/templates', templateRoutes);
 
 // Base API status route
 app.get('/api/health', (req, res) => {
