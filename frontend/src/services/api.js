@@ -569,4 +569,56 @@ export const api = {
         headers: getHeaders()
       }).then(handleResponse),
   },
+
+  // Hashtag & SEO Suggestion Generator (FR-14)
+  hashtags: {
+    generate: (body) =>
+      fetch(`${BASE_URL}/hashtags/generate`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+    getTemplates: () =>
+      fetch(`${BASE_URL}/hashtags/templates`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+    saveTemplate: (body) =>
+      fetch(`${BASE_URL}/hashtags/templates`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+    updateTemplate: (id, body) =>
+      fetch(`${BASE_URL}/hashtags/templates/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+    deleteTemplate: (id) =>
+      fetch(`${BASE_URL}/hashtags/templates/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      }).then(handleResponse),
+  },
+
+  // Brand Style Guide Export (FR-15)
+  styleGuide: {
+    get: (brandKitId) =>
+      fetch(`${BASE_URL}/style-guide${brandKitId ? `/${brandKitId}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+    updateConfig: (brandKitId, body) =>
+      fetch(`${BASE_URL}/style-guide/${brandKitId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+    exportPDF: (brandKitId) =>
+      fetch(`${BASE_URL}/style-guide/${brandKitId}/export`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+  },
 };

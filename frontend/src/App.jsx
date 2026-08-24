@@ -20,6 +20,8 @@ import { ContentManager } from './pages/ContentManager';
 import { BannerEditor } from './pages/BannerEditor';
 import { AdminPanel } from './pages/AdminPanel';
 import { Gamification } from './pages/Gamification';
+import { HashtagGenerator } from './pages/HashtagGenerator';
+import { BrandStyleGuide } from './pages/BrandStyleGuide';
 import { Layout } from './components/Layout';
 
 // SPA Router Component Container
@@ -124,7 +126,9 @@ const InnerApp = () => {
           />
         )}
         {activeTab === 'brandkit' && <BrandIdentity />}
+        {activeTab === 'styleguide' && <BrandStyleGuide />}
         {activeTab === 'content' && <ContentManager />}
+        {activeTab === 'hashtags' && <HashtagGenerator />}
         {activeTab === 'templates' && <BannerEditor />}
         {activeTab === 'products' && <Products />}
         {activeTab === 'marketplace' && <Marketplace />}

@@ -135,7 +135,7 @@ export const Dashboard = ({ subscription, refreshSub, onTabChange }) => {
           </div>
 
           {/* Core Feature Scaffolds */}
-          <div className="grid grid-2">
+          <div className="grid grid-2" style={{ gap: '20px' }}>
             <div className="card glass" style={styles.infoBlock}>
               <h3 style={styles.cardTitle}>🎨 Brand Identity Generation</h3>
               <p style={styles.cardText}>Fill out our questionnaire to generate a dynamic color palette, taglines, and logotypes scoped to your industry.</p>
@@ -148,7 +148,29 @@ export const Dashboard = ({ subscription, refreshSub, onTabChange }) => {
               </button>
             </div>
             <div className="card glass" style={styles.infoBlock}>
-              <h3 style={styles.cardTitle}>💬 sentiment Comment Classifier</h3>
+              <h3 style={styles.cardTitle}>📘 Brand Style Guide Export (FR-15)</h3>
+              <p style={styles.cardText}>Auto-generate and customize printable brand guidelines with logo clear space rules, HEX/RGB palettes, and font guidelines.</p>
+              <button 
+                className="btn btn-primary" 
+                style={{ width: 'fit-content' }}
+                onClick={() => onTabChange && onTabChange('styleguide')}
+              >
+                Export Style Guide PDF
+              </button>
+            </div>
+            <div className="card glass" style={styles.infoBlock}>
+              <h3 style={styles.cardTitle}>#️⃣ Hashtag & SEO Generator (FR-14)</h3>
+              <p style={styles.cardText}>Generate popularity-ranked Bangla & English hashtags, save templates, and optimize post title/meta descriptions.</p>
+              <button 
+                className="btn btn-primary" 
+                style={{ width: 'fit-content' }}
+                onClick={() => onTabChange && onTabChange('hashtags')}
+              >
+                Generate Hashtags & SEO
+              </button>
+            </div>
+            <div className="card glass" style={styles.infoBlock}>
+              <h3 style={styles.cardTitle}>💬 Sentiment Comment Classifier</h3>
               <p style={styles.cardText}>Securely connect your Facebook Business Page API. Automatically categorize comments into positive, neutral, or negative categories.</p>
               <button 
                 className="btn btn-accent" 
