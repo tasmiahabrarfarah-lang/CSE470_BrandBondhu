@@ -132,6 +132,24 @@ export const Layout = ({
             </button>
           )}
 
+          {user?.role === 'admin' && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'admin' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('admin')}
+            >
+              🛠️ Admin Panel
+            </button>
+          )}
+
+          {(user?.role === 'seller' || user?.role === 'collaborator') && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'gamification' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('gamification')}
+            >
+              🏆 Brand Score
+            </button>
+          )}
+
           <button 
             style={{ ...styles.navItem, ...(activeTab === 'notifications' ? styles.navItemActive : {}) }}
             onClick={() => onTabChange('notifications')}
@@ -306,6 +324,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
+    overflowY: 'auto',
   },
   navItem: {
     display: 'flex',

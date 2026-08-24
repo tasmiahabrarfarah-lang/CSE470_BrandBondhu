@@ -18,6 +18,8 @@ import { AnalyticsDashboard } from './pages/AnalyticsDashboard';
 import { BrandIdentity } from './pages/BrandIdentity';
 import { ContentManager } from './pages/ContentManager';
 import { BannerEditor } from './pages/BannerEditor';
+import { AdminPanel } from './pages/AdminPanel';
+import { Gamification } from './pages/Gamification';
 import { Layout } from './components/Layout';
 
 // SPA Router Component Container
@@ -115,7 +117,11 @@ const InnerApp = () => {
         subscription={subscription}
       >
         {activeTab === 'dashboard' && (
-          <Dashboard subscription={subscription} refreshSub={fetchSubscription} />
+          <Dashboard 
+            subscription={subscription} 
+            refreshSub={fetchSubscription} 
+            onTabChange={handleDashboardTabChange}
+          />
         )}
         {activeTab === 'brandkit' && <BrandIdentity />}
         {activeTab === 'content' && <ContentManager />}
@@ -129,6 +135,8 @@ const InnerApp = () => {
         {activeTab === 'collaborators' && <Collaborators />}
         {activeTab === 'notifications' && <Notifications />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
+        {activeTab === 'admin' && <AdminPanel />}
+        {activeTab === 'gamification' && <Gamification />}
       </Layout>
     );
   }

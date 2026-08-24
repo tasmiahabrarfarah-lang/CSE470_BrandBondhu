@@ -34,7 +34,7 @@ const UserSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'active', 'deactivated'],
+      enum: ['pending', 'active', 'deactivated', 'suspended'],
       default: 'pending',
     },
     profilePicture: {
@@ -79,6 +79,29 @@ const UserSchema = new mongoose.Schema(
       skills: { type: [String], default: [] },
       hourlyRate: { type: Number, default: 0 },
       portfolioLinks: { type: [String], default: [] },
+    },
+    brandingScore: {
+      type: Number,
+      default: 0,
+    },
+    badges: [
+      {
+        name: { type: String, required: true },
+        description: { type: String, default: '' },
+        awardedAt: { type: Date, default: Date.now },
+      },
+    ],
+    optInLeaderboard: {
+      type: Boolean,
+      default: false,
+    },
+    streakDays: {
+      type: Number,
+      default: 0,
+    },
+    lastPostDate: {
+      type: Date,
+      default: null,
     },
   },
   {

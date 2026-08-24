@@ -501,4 +501,72 @@ export const api = {
         headers: getHeaders()
       }).then(handleResponse),
   },
+
+  // Admin Control Panel (FR-12)
+  admin: {
+    getUsers: (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      return fetch(`${BASE_URL}/admin/users${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse);
+    },
+    suspendUser: (id) =>
+      fetch(`${BASE_URL}/admin/users/${id}/suspend`, {
+        method: 'PUT',
+        headers: getHeaders()
+      }).then(handleResponse),
+    unsuspendUser: (id) =>
+      fetch(`${BASE_URL}/admin/users/${id}/unsuspend`, {
+        method: 'PUT',
+        headers: getHeaders()
+      }).then(handleResponse),
+    deleteUser: (id) =>
+      fetch(`${BASE_URL}/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      }).then(handleResponse),
+    getDisputes: () =>
+      fetch(`${BASE_URL}/admin/disputes`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+    resolveDispute: (id, body) =>
+      fetch(`${BASE_URL}/admin/disputes/${id}/resolve`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+    getAnalytics: () =>
+      fetch(`${BASE_URL}/admin/analytics`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+    updatePricingTier: (id, body) =>
+      fetch(`${BASE_URL}/admin/pricing-tiers/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+  },
+
+  // Gamification (Branding Score) (FR-8)
+  gamification: {
+    getProfile: () =>
+      fetch(`${BASE_URL}/gamification/profile`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+    toggleLeaderboard: (optIn) =>
+      fetch(`${BASE_URL}/gamification/leaderboard/toggle`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ optIn })
+      }).then(handleResponse),
+    getLeaderboard: () =>
+      fetch(`${BASE_URL}/gamification/leaderboard`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+  },
 };
