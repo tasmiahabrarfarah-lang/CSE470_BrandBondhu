@@ -1,5 +1,6 @@
 import Subscription from '../models/Subscription.js';
 import Notification from '../models/Notification.js';
+import SubscriptionTier from '../models/SubscriptionTier.js';
 
 // Available Tiers configuration details
 export const SUBSCRIPTION_TIERS = {
@@ -29,11 +30,50 @@ export const SUBSCRIPTION_TIERS = {
   },
 };
 
+// Seed function
+export const seedSubscriptionTiers = async () => {
+  try {
+    const count = await SubscriptionTier.countDocuments();
+    if (count === 0) {
+      console.log('Seeding subscription tiers into database...');
+      const tiers = Object.keys(SUBSCRIPTION_TIERS).map(key => ({
+        tier: key,
+        name: SUBSCRIPTION_TIERS[key].name,
+        price: SUBSCRIPTION_TIERS[key].price,
+        credits: SUBSCRIPTION_TIERS[key].credits,
+        features: SUBSCRIPTION_TIERS[key].features,
+      }));
+      await SubscriptionTier.insertMany(tiers);
+      console.log('Subscription tiers seeded successfully.');
+    }
+  } catch (error) {
+    console.error('Failed to seed subscription tiers:', error.message);
+  }
+};
+
 // @desc    Get all subscription tiers
 // @route   GET /api/subscriptions/plans
 // @access  Public
 export const getPlans = async (req, res) => {
-  res.status(200).json({ success: true, data: SUBSCRIPTION_TIERS });
+  try {
+    await seedSubscriptionTiers();
+    const dbTiers = await SubscriptionTier.find();
+    
+    const formattedTiers = {};
+    dbTiers.forEach(t => {
+      formattedTiers[t.tier] = {
+        _id: t._id,
+        name: t.name,
+        price: t.price,
+        credits: t.credits,
+        features: t.features,
+      };
+    });
+
+    res.status(200).json({ success: true, data: formattedTiers });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 // @desc    Get user subscription and credit details

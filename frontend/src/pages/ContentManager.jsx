@@ -645,6 +645,8 @@ const styles = {
     color: '#cbd5e1',
   },
   input: {
+    width: '100%',
+    boxSizing: 'border-box',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '10px',
@@ -654,6 +656,8 @@ const styles = {
     outline: 'none',
   },
   textarea: {
+    width: '100%',
+    boxSizing: 'border-box',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '10px',
@@ -664,6 +668,8 @@ const styles = {
     resize: 'vertical',
   },
   select: {
+    width: '100%',
+    boxSizing: 'border-box',
     backgroundColor: '#0f172a',
     border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '10px',

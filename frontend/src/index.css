@@ -275,3 +275,9 @@ body {
 .glow-text {
   text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
 }
+
+/* Fix dropdown options being invisible (white-on-white) on some browsers/OS */
+select option {
+  background-color: #161720;
+  color: #ffffff;
+}

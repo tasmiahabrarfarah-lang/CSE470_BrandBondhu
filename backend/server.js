@@ -17,7 +17,11 @@ import analyticsRoutes from './routes/analyticsRoutes.js';
 import brandKitRoutes from './routes/brandKitRoutes.js';
 import contentRoutes from './routes/contentRoutes.js';
 import templateRoutes from './routes/templateRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import gamificationRoutes from './routes/gamificationRoutes.js';
 import { seedPrebuiltTemplates } from './controllers/templateController.js';
+import { seedSubscriptionTiers } from './controllers/subscriptionController.js';
+import { seedDefaultAdmin } from './controllers/authController.js';
 
 // Load environment variables
 dotenv.config();
@@ -25,6 +29,8 @@ dotenv.config();
 // Connect to MongoDB
 connectDB().then(() => {
   seedPrebuiltTemplates();
+  seedSubscriptionTiers();
+  seedDefaultAdmin();
 });
 
 const app = express();
@@ -54,6 +60,8 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/brand-kit', brandKitRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/templates', templateRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/gamification', gamificationRoutes);
 
 // Base API status route
 app.get('/api/health', (req, res) => {

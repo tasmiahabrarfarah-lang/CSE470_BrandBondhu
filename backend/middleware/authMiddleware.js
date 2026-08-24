@@ -32,6 +32,10 @@ export const protect = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Account has been deactivated. Please contact support.' });
     }
 
+    if (user.status === 'suspended') {
+      return res.status(403).json({ success: false, message: 'Account has been suspended. Please contact support.' });
+    }
+
     req.user = user;
 
     // Resolve multi-tenancy business ID (all data owned at Seller level)
