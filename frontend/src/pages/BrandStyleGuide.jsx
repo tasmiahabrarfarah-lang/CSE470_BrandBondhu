@@ -146,7 +146,7 @@ export const BrandStyleGuide = () => {
         </div>
 
         <button className="btn btn-primary" onClick={handleExportPDF} style={{ padding: '12px 24px', fontSize: '0.95rem' }}>
-          📄 Export / Download PDF Style Guide (FR-15.3)
+          📄 Export / Download PDF Style Guide
         </button>
       </div>
 
@@ -267,7 +267,7 @@ export const BrandStyleGuide = () => {
                 <h4 style={{ fontSize: '0.9rem', color: '#6366f1', fontWeight: 'bold', marginBottom: '10px' }}>1. LOGO IDENTITY & ICON</h4>
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '10px' }}>
                   {logo.svgCode ? (
-                    <div dangerouslySetInnerHTML={{ __html: logo.svgCode }} style={{ width: '80px', height: '80px' }} />
+                    <div dangerouslySetInnerHTML={{ __html: logo.svgCode }} style={{ width: '80px', height: '80px' }} className="logo-svg-container" />
                   ) : (
                     <div style={{ width: '70px', height: '70px', borderRadius: '14px', background: `linear-gradient(135deg, ${logo.primaryColor || '#6366f1'}, ${logo.accentColor || '#d946ef'})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.8rem', color: '#fff' }}>
                       {brandKit.questionnaire?.businessName?.charAt(0) || 'B'}

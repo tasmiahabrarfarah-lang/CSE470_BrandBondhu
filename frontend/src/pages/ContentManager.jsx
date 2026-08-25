@@ -246,13 +246,13 @@ export const ContentManager = () => {
       <div style={styles.mainGrid}>
         {/* Left Column: Caption Generator */}
         <div className="glass" style={styles.card}>
-          <h2 style={styles.cardTitle}>🪄 AI Caption Generator (FR-3.1)</h2>
+          <h2 style={styles.cardTitle}>🪄 AI Caption Generator</h2>
           <p style={styles.cardSub}>Select a product or enter details to generate captions in Bangla & English.</p>
 
           <form onSubmit={handleGenerateCaption} style={styles.form}>
             {/* Auto-pull dropdown */}
             <div style={styles.formGroup}>
-              <label style={styles.label}>Select Product (Auto-Pull Prompt) (FR-13.4)</label>
+              <label style={styles.label}>Select Product (Auto-Pull Prompt)</label>
               <select
                 value={selectedProductId}
                 onChange={(e) => handleProductSelect(e.target.value)}
@@ -291,7 +291,7 @@ export const ContentManager = () => {
             </div>
 
             <div style={styles.formGroup}>
-              <label style={styles.label}>Tone Selection (FR-3.2)</label>
+              <label style={styles.label}>Tone Selection</label>
               <select
                 value={customPrompt.tone}
                 onChange={(e) => setCustomPrompt({ ...customPrompt, tone: e.target.value })}
@@ -372,7 +372,7 @@ export const ContentManager = () => {
           <div className="glass" style={styles.card}>
             <div style={styles.sectionHeaderRow}>
               <div>
-                <h2 style={styles.cardTitle}>📅 Content Calendar & Schedule (FR-3.3)</h2>
+                <h2 style={styles.cardTitle}>📅 Content Calendar & Schedule</h2>
                 <p style={styles.cardSub}>Manage your upcoming scheduled content and post history.</p>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -513,7 +513,7 @@ export const ContentManager = () => {
               </div>
 
               <div style={styles.formGroup}>
-                <label style={styles.label}>Schedule Date & Time * (FR-3.3)</label>
+                <label style={styles.label}>Schedule Date & Time *</label>
                 <input
                   type="datetime-local"
                   value={postForm.scheduledAt}

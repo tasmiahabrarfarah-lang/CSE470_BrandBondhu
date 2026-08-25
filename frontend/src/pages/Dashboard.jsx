@@ -148,7 +148,7 @@ export const Dashboard = ({ subscription, refreshSub, onTabChange }) => {
               </button>
             </div>
             <div className="card glass" style={styles.infoBlock}>
-              <h3 style={styles.cardTitle}>📘 Brand Style Guide Export (FR-15)</h3>
+              <h3 style={styles.cardTitle}>📘 Brand Style Guide Export</h3>
               <p style={styles.cardText}>Auto-generate and customize printable brand guidelines with logo clear space rules, HEX/RGB palettes, and font guidelines.</p>
               <button 
                 className="btn btn-primary" 
@@ -159,7 +159,7 @@ export const Dashboard = ({ subscription, refreshSub, onTabChange }) => {
               </button>
             </div>
             <div className="card glass" style={styles.infoBlock}>
-              <h3 style={styles.cardTitle}>#️⃣ Hashtag & SEO Generator (FR-14)</h3>
+              <h3 style={styles.cardTitle}>#️⃣ Hashtag & SEO Generator</h3>
               <p style={styles.cardText}>Generate popularity-ranked Bangla & English hashtags, save templates, and optimize post title/meta descriptions.</p>
               <button 
                 className="btn btn-primary" 

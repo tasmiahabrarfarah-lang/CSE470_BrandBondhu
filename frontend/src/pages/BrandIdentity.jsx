@@ -178,7 +178,7 @@ export const BrandIdentity = () => {
       <div style={styles.mainGrid}>
         {/* Left Column: Brand Questionnaire Form */}
         <div className="glass" style={styles.card}>
-          <h2 style={styles.cardTitle}>📋 Brand Questionnaire (FR-2.1)</h2>
+          <h2 style={styles.cardTitle}>📋 Brand Questionnaire</h2>
           <p style={styles.cardSub}>Provide details to shape your unique brand identity.</p>
 
           <form onSubmit={handleGenerate} style={styles.form}>
@@ -293,7 +293,7 @@ export const BrandIdentity = () => {
               {/* Logo Section */}
               <div style={styles.assetSection}>
                 <div style={styles.sectionHeaderRow}>
-                  <h3 style={styles.assetTitle}>🖼️ AI Generated Logo (FR-2.2)</h3>
+                  <h3 style={styles.assetTitle}>🖼️ AI Generated Logo</h3>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
                       style={styles.miniBtn}
@@ -308,14 +308,14 @@ export const BrandIdentity = () => {
                   </div>
                 </div>
                 <div style={styles.logoDisplayBox}>
-                  <div dangerouslySetInnerHTML={{ __html: activeKit.logo.svgCode }} style={styles.logoContainer} />
+                  <div dangerouslySetInnerHTML={{ __html: activeKit.logo.svgCode }} style={styles.logoContainer} className="logo-svg-container" />
                 </div>
               </div>
 
               {/* Color Palette Section */}
               <div style={styles.assetSection}>
                 <div style={styles.sectionHeaderRow}>
-                  <h3 style={styles.assetTitle}>🎨 Color Palette (FR-2.3)</h3>
+                  <h3 style={styles.assetTitle}>🎨 Color Palette</h3>
                   <button
                     style={styles.miniBtn}
                     onClick={() => handleRegenerateAsset(activeKit._id, 'colors')}
@@ -341,7 +341,7 @@ export const BrandIdentity = () => {
 
               {/* Typography Section */}
               <div style={styles.assetSection}>
-                <h3 style={styles.assetTitle}>✍️ Typography Suggestions (FR-2.3)</h3>
+                <h3 style={styles.assetTitle}>✍️ Typography Suggestions</h3>
                 <div style={styles.typoBox}>
                   <div>
                     <span style={styles.typoLabel}>Heading Font:</span>
@@ -361,7 +361,7 @@ export const BrandIdentity = () => {
               {/* Taglines Section */}
               <div style={styles.assetSection}>
                 <div style={styles.sectionHeaderRow}>
-                  <h3 style={styles.assetTitle}>💬 Taglines (Bangla & English) (FR-2.4)</h3>
+                  <h3 style={styles.assetTitle}>💬 Taglines (Bangla & English)</h3>
                   <button
                     style={styles.miniBtn}
                     onClick={() => handleRegenerateAsset(activeKit._id, 'taglines')}

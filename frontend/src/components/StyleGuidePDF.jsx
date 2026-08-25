@@ -66,7 +66,7 @@ export const StyleGuidePDF = ({ data, onClose }) => {
               <div style={styles.gridTwo}>
                 <div style={styles.logoPreviewBox}>
                   {logo.svgCode ? (
-                    <div dangerouslySetInnerHTML={{ __html: logo.svgCode }} style={{ width: '120px', height: '120px' }} />
+                    <div dangerouslySetInnerHTML={{ __html: logo.svgCode }} style={{ width: '120px', height: '120px' }} className="logo-svg-container" />
                   ) : (
                     <div style={{
                       width: '100px',

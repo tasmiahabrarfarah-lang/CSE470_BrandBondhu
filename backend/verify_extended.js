@@ -166,6 +166,18 @@ const runTests = async () => {
         }
         logTest('7. Admin Unsuspend Seller Account', 'SUCCESS', `Status updated to: ${unsuspendData.data.status}`);
 
+        // Confirm active seller is able to log in successfully (verifies that pre-save password hashing is fixed)
+        const sellerLoginRes = await fetch(`${BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'seller-test@brandbondhu.com', password: 'sellerpassword' })
+        });
+        const sellerLoginData = await sellerLoginRes.json();
+        if (sellerLoginRes.status !== 200 || !sellerLoginData.success) {
+          throw new Error(`Active seller login failed: ${sellerLoginData.message || sellerLoginRes.status}`);
+        }
+        logTest('7.1 Verify Active Seller Login after Unsuspension', 'SUCCESS', 'Active seller logged in successfully');
+
         // 4. Test Marketplace Dispute Resolution
         const testDesigner = await User.findOne({ email: 'designer-test@brandbondhu.com' });
         // Create Design Job in Escrow
