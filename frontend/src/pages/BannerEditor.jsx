@@ -17,8 +17,20 @@ export const BannerEditor = () => {
   const [canvasBgColor, setCanvasBgColor] = useState('#0f172a');
   const [canvasGradient, setCanvasGradient] = useState('linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)');
   const [canvasTitle, setCanvasTitle] = useState('My Custom Poster');
+  const [dragState, setDragState] = useState(null); // { id, startX, startY, initialX, initialY }
 
   const canvasRef = useRef(null);
+
+  const targetWidth = selectedTemplate?.dimensions?.width || 1080;
+  const targetHeight = selectedTemplate?.dimensions?.height || 1080;
+  const maxDisplaySize = 560;
+
+  const scale = targetWidth >= targetHeight 
+    ? maxDisplaySize / targetWidth 
+    : maxDisplaySize / targetHeight;
+
+  const displayWidth = targetWidth * scale;
+  const displayHeight = targetHeight * scale;
 
   const fetchInitialData = async () => {
     try {
@@ -49,6 +61,43 @@ export const BannerEditor = () => {
   useEffect(() => {
     fetchInitialData();
   }, []);
+
+  // Handle dragging elements on canvas (mouse and touch support)
+  useEffect(() => {
+    if (!dragState) return;
+
+    const handleMove = (e) => {
+      if (e.cancelable && e.touches) {
+        e.preventDefault();
+      }
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      
+      const dx = (clientX - dragState.startX) / scale;
+      const dy = (clientY - dragState.startY) / scale;
+
+      handleUpdateElement(dragState.id, {
+        x: Math.round(dragState.initialX + dx),
+        y: Math.round(dragState.initialY + dy),
+      });
+    };
+
+    const handleEnd = () => {
+      setDragState(null);
+    };
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleEnd);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleEnd);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleEnd);
+    };
+  }, [dragState, scale]);
 
   const loadTemplateIntoCanvas = (tmpl) => {
     setSelectedTemplate(tmpl);
@@ -151,8 +200,8 @@ export const BannerEditor = () => {
     if (!node) return;
 
     const canvas = document.createElement('canvas');
-    const width = 600;
-    const height = 600;
+    const width = selectedTemplate?.dimensions?.width || 1080;
+    const height = selectedTemplate?.dimensions?.height || 1080;
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
@@ -173,8 +222,7 @@ export const BannerEditor = () => {
 
       // Draw Text
       ctx.fillStyle = el.color || '#ffffff';
-      const fSize = Math.round((el.fontSize || 24) * 0.7);
-      ctx.font = `${el.fontWeight || 'normal'} ${fSize}px sans-serif`;
+      ctx.font = `${el.fontWeight || 'normal'} ${el.fontSize || 24}px sans-serif`;
       ctx.textAlign = el.textAlign || 'center';
       ctx.textBaseline = 'middle';
 
@@ -249,10 +297,10 @@ export const BannerEditor = () => {
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button style={styles.secondaryBtn} onClick={handleAutoPopulateBrandKit}>
-            ✨ Auto-Populate Brand Kit (FR-4.3)
+            ✨ Auto-Populate Brand Kit
           </button>
           <button style={styles.primaryBtn} onClick={handleExportPNG} className="glow-effect">
-            ⬇️ Export Design PNG (FR-4.4)
+            ⬇️ Export Design PNG
           </button>
         </div>
       </div>
@@ -260,10 +308,11 @@ export const BannerEditor = () => {
       {error && <div style={styles.errorAlert}>⚠️ {error}</div>}
       {successMsg && <div style={styles.successAlert}>✅ {successMsg}</div>}
 
-      <div style={styles.mainLayout}>
+      <div style={{ width: '100%', overflowX: 'auto', paddingBottom: '10px' }}>
+        <div style={{ ...styles.mainLayout, minWidth: '1200px' }}>
         {/* Left Column: Template Gallery */}
         <div className="glass" style={styles.galleryCard}>
-          <h3 style={styles.cardTitle}>📁 Template Gallery (FR-4.1)</h3>
+          <h3 style={styles.cardTitle}>📁 Template Gallery</h3>
           <div style={styles.categoryFilter}>
             {categories.map((cat, idx) => (
               <button
@@ -321,7 +370,7 @@ export const BannerEditor = () => {
                   + Add Badge
                 </button>
                 <button style={styles.secondaryBtn} onClick={handleSaveCustomTemplate} disabled={saving}>
-                  💾 Save Custom (FR-4.5)
+                  💾 Save Custom
                 </button>
               </div>
             </div>
@@ -329,7 +378,12 @@ export const BannerEditor = () => {
             {/* Interactive Canvas Board */}
             <div
               ref={canvasRef}
-              style={{ ...styles.interactiveCanvas, background: canvasGradient }}
+              style={{ 
+                ...styles.interactiveCanvas, 
+                width: `${displayWidth}px`, 
+                height: `${displayHeight}px`, 
+                background: canvasGradient 
+              }}
               onClick={() => setSelectedElementId(null)}
             >
               {canvasElements.map((el) => {
@@ -339,20 +393,20 @@ export const BannerEditor = () => {
                     key={el.id}
                     style={{
                       position: 'absolute',
-                      left: `${el.x}px`,
-                      top: `${el.y}px`,
-                      width: `${el.width}px`,
-                      height: `${el.height}px`,
+                      left: `${el.x * scale}px`,
+                      top: `${el.y * scale}px`,
+                      width: `${el.width * scale}px`,
+                      height: `${el.height * scale}px`,
                       color: el.color || '#ffffff',
                       backgroundColor: el.backgroundColor || 'transparent',
-                      fontSize: `${el.fontSize || 24}px`,
+                      fontSize: `${(el.fontSize || 24) * scale}px`,
                       fontWeight: el.fontWeight || 'normal',
                       fontFamily: el.fontFamily || 'sans-serif',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       textAlign: el.textAlign || 'center',
-                      borderRadius: `${el.borderRadius || 10}px`,
+                      borderRadius: `${(el.borderRadius || 10) * scale}px`,
                       border: isSelected ? '2px dashed #38bdf8' : '1px solid transparent',
                       cursor: 'move',
                       userSelect: 'none',
@@ -362,6 +416,28 @@ export const BannerEditor = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedElementId(el.id);
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      setSelectedElementId(el.id);
+                      setDragState({
+                        id: el.id,
+                        startX: e.clientX,
+                        startY: e.clientY,
+                        initialX: el.x,
+                        initialY: el.y,
+                      });
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      setSelectedElementId(el.id);
+                      setDragState({
+                        id: el.id,
+                        startX: e.touches[0].clientX,
+                        startY: e.touches[0].clientY,
+                        initialX: el.x,
+                        initialY: el.y,
+                      });
                     }}
                   >
                     {el.content}
@@ -487,7 +563,8 @@ export const BannerEditor = () => {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 const styles = {
@@ -714,6 +791,8 @@ const styles = {
     color: '#fff',
     fontSize: '0.85rem',
     outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
   },
   select: {
     backgroundColor: '#0f172a',
@@ -723,6 +802,8 @@ const styles = {
     color: '#fff',
     fontSize: '0.85rem',
     outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
   },
   colorPicker: {
     width: '100%',

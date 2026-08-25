@@ -11,6 +11,7 @@ export const Layout = ({
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const creditsRemaining = subscription?.credits?.current ?? 0;
   const creditsTotal = subscription?.credits?.total ?? 20;
@@ -32,7 +33,14 @@ export const Layout = ({
   return (
     <div style={styles.container}>
       {/* Sidebar Navigation */}
-      <aside className="glass" style={styles.sidebar}>
+      <aside 
+        className="glass" 
+        style={{ 
+          ...styles.sidebar, 
+          transform: sidebarCollapsed ? 'translateX(-260px)' : 'none',
+          transition: 'transform 0.3s ease',
+        }}
+      >
         <div style={styles.brandBox}>
           <div style={styles.logoCircle}>B</div>
           <div>
@@ -187,10 +195,35 @@ export const Layout = ({
       </aside>
 
       {/* Main Content Area */}
-      <div style={styles.mainWrapper}>
+      <div 
+        style={{ 
+          ...styles.mainWrapper, 
+          marginLeft: sidebarCollapsed ? '0px' : '260px',
+          transition: 'margin-left 0.3s ease',
+        }}
+      >
         {/* Top Header */}
         <header className="glass" style={styles.header}>
           <div style={styles.headerLeft}>
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#fff',
+                fontSize: '1.2rem',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                marginRight: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title={sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
+            >
+              {sidebarCollapsed ? '☰' : '◀'}
+            </button>
             {user?.role === 'seller' && subscription && (
               <div style={styles.creditStats}>
                 <span style={styles.creditLabel}>Credits:</span>

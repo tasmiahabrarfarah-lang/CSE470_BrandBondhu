@@ -97,7 +97,7 @@ export const Collaborators = () => {
   return (
     <div style={styles.container}>
       <h2 style={styles.pageTitle}>👥 Team Collaborator Access Management</h2>
-      <p style={styles.pageSubtitle}>Invite staff members, assign restricted feature permissions, and track action audit logs (FR-17)</p>
+      <p style={styles.pageSubtitle}>Invite staff members, assign restricted feature permissions, and track action audit logs</p>
 
       {successMsg && <div style={styles.successAlert}>✅ {successMsg}</div>}
       {errorMsg && <div style={styles.errorAlert}>⚠️ {errorMsg}</div>}
@@ -114,7 +114,7 @@ export const Collaborators = () => {
           style={{ ...styles.tabBtn, ...(activeTab === 'audit' ? styles.tabBtnActive : {}) }}
           onClick={() => setActiveTab('audit')}
         >
-          📜 Team Action Audit Log (FR-17.3)
+          📜 Team Action Audit Log
         </button>
       </div>
 
@@ -174,7 +174,7 @@ export const Collaborators = () => {
 
             {/* Permissions selectors */}
             <div className="form-group">
-              <label className="form-label">Configure Feature Permissions (FR-17.2)</label>
+              <label className="form-label">Configure Feature Permissions</label>
               <div style={styles.permList}>
                 <label style={styles.permCheckbox}>
                   <input
@@ -182,7 +182,7 @@ export const Collaborators = () => {
                     checked={permissions.includes('products')}
                     onChange={() => handlePermissionChange('products')}
                   />
-                  &nbsp;Product Catalog Management (FR-13)
+                  &nbsp;Product Catalog Management
                 </label>
                 <label style={styles.permCheckbox}>
                   <input
@@ -190,7 +190,7 @@ export const Collaborators = () => {
                     checked={permissions.includes('marketplace')}
                     onChange={() => handlePermissionChange('marketplace')}
                   />
-                  &nbsp;Design Marketplace access (FR-7)
+                  &nbsp;Design Marketplace access
                 </label>
                 <label style={styles.permCheckbox}>
                   <input
@@ -198,7 +198,7 @@ export const Collaborators = () => {
                     checked={permissions.includes('content')}
                     onChange={() => handlePermissionChange('content')}
                   />
-                  &nbsp;Content Publishing & calendar (FR-3)
+                  &nbsp;Content Publishing & calendar
                 </label>
                 <label style={styles.permCheckbox}>
                   <input
@@ -206,7 +206,7 @@ export const Collaborators = () => {
                     checked={permissions.includes('analytics')}
                     onChange={() => handlePermissionChange('analytics')}
                   />
-                  &nbsp;Dashboard reports & analytics (FR-9)
+                  &nbsp;Dashboard reports & analytics
                 </label>
                 <label style={styles.permCheckbox}>
                   <input
@@ -214,7 +214,7 @@ export const Collaborators = () => {
                     checked={permissions.includes('faq')}
                     onChange={() => handlePermissionChange('faq')}
                   />
-                  &nbsp;FAQ Assistant configurations (FR-18)
+                  &nbsp;FAQ Assistant configurations
                 </label>
               </div>
             </div>

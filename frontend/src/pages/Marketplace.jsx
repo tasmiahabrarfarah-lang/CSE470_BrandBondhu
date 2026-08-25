@@ -300,7 +300,7 @@ export const Marketplace = () => {
       <div style={styles.headerRow}>
         <div>
           <h2 style={styles.pageTitle}>🎨 Freelance Designer Marketplace</h2>
-          <p style={styles.pageSubtitle}>Connect with verified Bangladeshi designers, request custom branding, escrow payments (FR-7)</p>
+          <p style={styles.pageSubtitle}>Connect with verified Bangladeshi designers, request custom branding, escrow payments</p>
         </div>
       </div>
 

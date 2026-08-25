@@ -369,7 +369,7 @@ export const HashtagGenerator = () => {
 
                   {/* Save as Template Modal / Box inside Card */}
                   <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '16px 0' }} />
-                  <h4 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>💾 Save Current Set as Template (FR-14.3)</h4>
+                  <h4 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>💾 Save Current Set as Template</h4>
                   <form onSubmit={handleSaveTemplate} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <input
@@ -451,7 +451,7 @@ export const HashtagGenerator = () => {
       {/* Templates Tab */}
       {activeTab === 'templates' && (
         <div className="glass" style={styles.card}>
-          <h3 style={styles.cardTitle}>📁 Saved Hashtag Templates (FR-14.3)</h3>
+          <h3 style={styles.cardTitle}>📁 Saved Hashtag Templates</h3>
           <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '20px' }}>
             Quickly apply saved hashtag collections to your scheduled posts or social campaigns.
           </p>
