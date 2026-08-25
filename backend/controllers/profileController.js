@@ -1,4 +1,6 @@
 import User from '../models/User.js';
+import AuditLog from '../models/AuditLog.js';
+import { logAuditAction } from '../utils/auditLogger.js';
 
 // @desc    Update user profile details
 // @route   PUT /api/profile
@@ -37,13 +39,22 @@ export const updateProfile = async (req, res) => {
     }
 
     const updatedUser = await user.save();
+
+    await logAuditAction({
+      businessId: req.businessId,
+      user: req.user,
+      action: 'UPDATE_PROFILE',
+      details: `Updated user profile details`,
+      targetResource: `User:${user._id}`,
+    });
+
     res.status(200).json({ success: true, data: updatedUser });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Invite/Create a collaborator (Staff)
+// @desc    Invite/Create a collaborator (Staff) (FR-17.1, FR-17.2)
 // @route   POST /api/profile/collaborators
 // @access  Private (Seller only)
 export const inviteCollaborator = async (req, res) => {
@@ -67,6 +78,14 @@ export const inviteCollaborator = async (req, res) => {
       ownerId: req.user.id, // Scoped to this seller's business
       permissions: permissions || ['content'],
       businessInfo: req.user.businessInfo, // Shares the same business profile
+    });
+
+    await logAuditAction({
+      businessId: req.businessId,
+      user: req.user,
+      action: 'INVITE_COLLABORATOR',
+      details: `Invited staff collaborator ${collaborator.name} (${collaborator.email}) with permissions: ${collaborator.permissions.join(', ')}`,
+      targetResource: `User:${collaborator._id}`,
     });
 
     res.status(201).json({
@@ -98,7 +117,7 @@ export const getCollaborators = async (req, res) => {
   }
 };
 
-// @desc    Update permissions for a collaborator
+// @desc    Update permissions for a collaborator (FR-17.2)
 // @route   PUT /api/profile/collaborators/:id
 // @access  Private (Seller only)
 export const updateCollaboratorPermissions = async (req, res) => {
@@ -113,13 +132,21 @@ export const updateCollaboratorPermissions = async (req, res) => {
     collaborator.permissions = permissions;
     await collaborator.save();
 
+    await logAuditAction({
+      businessId: req.businessId,
+      user: req.user,
+      action: 'UPDATE_COLLABORATOR_PERMISSIONS',
+      details: `Updated permissions for staff ${collaborator.name} to: ${permissions.join(', ')}`,
+      targetResource: `User:${collaborator._id}`,
+    });
+
     res.status(200).json({ success: true, message: 'Permissions updated successfully', data: collaborator });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Remove a collaborator
+// @desc    Remove a collaborator (FR-17.4)
 // @route   DELETE /api/profile/collaborators/:id
 // @access  Private (Seller only)
 export const removeCollaborator = async (req, res) => {
@@ -130,7 +157,27 @@ export const removeCollaborator = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Collaborator not found or not owned by you' });
     }
 
-    res.status(200).json({ success: true, message: 'Collaborator removed successfully' });
+    await logAuditAction({
+      businessId: req.businessId,
+      user: req.user,
+      action: 'REVOKE_COLLABORATOR',
+      details: `Revoked access for staff collaborator ${collaborator.name} (${collaborator.email})`,
+      targetResource: `User:${collaborator._id}`,
+    });
+
+    res.status(200).json({ success: true, message: 'Collaborator access revoked successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get business audit logs for team activity tracking (FR-17.3)
+// @route   GET /api/profile/audit-logs
+// @access  Private (Seller & Collaborators)
+export const getAuditLogs = async (req, res) => {
+  try {
+    const logs = await AuditLog.find({ businessId: req.businessId }).sort({ createdAt: -1 }).limit(100);
+    res.status(200).json({ success: true, count: logs.length, data: logs });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

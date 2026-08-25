@@ -12,6 +12,8 @@ import { Profile } from './pages/Profile';
 import { Subscriptions } from './pages/Subscriptions';
 import { Collaborators } from './pages/Collaborators';
 import { Notifications } from './pages/Notifications';
+import { Products } from './pages/Products';
+import { Marketplace } from './pages/Marketplace';
 import { Layout } from './components/Layout';
 
 // SPA Router Component Container
@@ -111,6 +113,8 @@ const InnerApp = () => {
         {activeTab === 'dashboard' && (
           <Dashboard subscription={subscription} refreshSub={fetchSubscription} />
         )}
+        {activeTab === 'products' && <Products />}
+        {activeTab === 'marketplace' && <Marketplace />}
         {activeTab === 'profile' && <Profile />}
         {activeTab === 'subscriptions' && (
           <Subscriptions subscription={subscription} refreshSub={fetchSubscription} />

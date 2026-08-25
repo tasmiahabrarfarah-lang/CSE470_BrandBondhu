@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
 export const Collaborators = () => {
+  const [activeTab, setActiveTab] = useState('team');
   const [collaborators, setCollaborators] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Invite states
@@ -10,27 +12,32 @@ export const Collaborators = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [permissions, setPermissions] = useState(['content']);
+  const [permissions, setPermissions] = useState(['content', 'products']);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const loadCollaborators = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const res = await api.profile.getCollaborators();
-      setCollaborators(res.data);
+      if (activeTab === 'team') {
+        const res = await api.profile.getCollaborators();
+        setCollaborators(res.data);
+      } else if (activeTab === 'audit') {
+        const res = await api.profile.getAuditLogs();
+        setAuditLogs(res.data);
+      }
     } catch (err) {
-      console.error('Failed to load collaborators:', err.message);
+      console.error('Failed to load collaborator/audit data:', err.message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadCollaborators();
-  }, []);
+    loadData();
+  }, [activeTab]);
 
   const handleInvite = async (e) => {
     e.preventDefault();
@@ -56,9 +63,9 @@ export const Collaborators = () => {
         setEmail('');
         setPhone('');
         setPassword('');
-        setPermissions(['content']);
+        setPermissions(['content', 'products']);
         // Reload list
-        await loadCollaborators();
+        await loadData();
       }
     } catch (err) {
       setErrorMsg(err.message || 'Invitation failed.');
@@ -72,7 +79,7 @@ export const Collaborators = () => {
       try {
         await api.profile.removeCollaborator(id);
         setSuccessMsg('Collaborator access successfully revoked.');
-        await loadCollaborators();
+        await loadData();
       } catch (err) {
         setErrorMsg(err.message || 'Failed to remove collaborator.');
       }
@@ -87,149 +94,207 @@ export const Collaborators = () => {
     }
   };
 
-  if (loading && collaborators.length === 0) {
-    return <div style={{ textAlign: 'center', padding: '40px' }}>Loading team members...</div>;
-  }
-
   return (
     <div style={styles.container}>
-      <h2 style={styles.pageTitle}>👥 Team Collaborator Access</h2>
-      <p style={styles.pageSubtitle}>Invite staff members and manage restricted feature access levels (FR-17)</p>
+      <h2 style={styles.pageTitle}>👥 Team Collaborator Access Management</h2>
+      <p style={styles.pageSubtitle}>Invite staff members, assign restricted feature permissions, and track action audit logs (FR-17)</p>
 
       {successMsg && <div style={styles.successAlert}>✅ {successMsg}</div>}
       {errorMsg && <div style={styles.errorAlert}>⚠️ {errorMsg}</div>}
 
-      <div style={styles.layout}>
-        {/* Invite Form */}
-        <form onSubmit={handleInvite} className="glass card" style={styles.inviteCard}>
-          <h3 style={styles.sectionHeader}>Invite New Staff Operator</h3>
-          
-          <div className="form-group">
-            <label className="form-label">Staff Name</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="e.g. Asif Mahmud"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
+      {/* Navigation Sub-Tabs */}
+      <div style={styles.tabContainer}>
+        <button
+          style={{ ...styles.tabBtn, ...(activeTab === 'team' ? styles.tabBtnActive : {}) }}
+          onClick={() => setActiveTab('team')}
+        >
+          👥 Active Staff Members
+        </button>
+        <button
+          style={{ ...styles.tabBtn, ...(activeTab === 'audit' ? styles.tabBtnActive : {}) }}
+          onClick={() => setActiveTab('audit')}
+        >
+          📜 Team Action Audit Log (FR-17.3)
+        </button>
+      </div>
 
-          <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input
-              type="email"
-              className="form-input"
-              placeholder="operator@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Mobile Phone</label>
-            <input
-              type="tel"
-              className="form-input"
-              placeholder="e.g. 017XXXXXXXX"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Temporary Password</label>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="Minimum 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Permissions selectors */}
-          <div className="form-group">
-            <label className="form-label">Configure Permissions (Restricted Modules)</label>
-            <div style={styles.permList}>
-              <label style={styles.permCheckbox}>
-                <input
-                  type="checkbox"
-                  checked={permissions.includes('content')}
-                  onChange={() => handlePermissionChange('content')}
-                />
-                &nbsp;Content Publishing & calendar (FR-3)
-              </label>
-              <label style={styles.permCheckbox}>
-                <input
-                  type="checkbox"
-                  checked={permissions.includes('analytics')}
-                  onChange={() => handlePermissionChange('analytics')}
-                />
-                &nbsp;Dashboard reports & analytics (FR-9)
-              </label>
-              <label style={styles.permCheckbox}>
-                <input
-                  type="checkbox"
-                  checked={permissions.includes('marketplace')}
-                  onChange={() => handlePermissionChange('marketplace')}
-                />
-                &nbsp;Design Marketplace access (FR-7)
-              </label>
-              <label style={styles.permCheckbox}>
-                <input
-                  type="checkbox"
-                  checked={permissions.includes('faq')}
-                  onChange={() => handlePermissionChange('faq')}
-                />
-                &nbsp;FAQ Assistant configurations (FR-18)
-              </label>
+      {activeTab === 'team' && (
+        <div style={styles.layout}>
+          {/* Invite Form */}
+          <form onSubmit={handleInvite} className="glass card" style={styles.inviteCard}>
+            <h3 style={styles.sectionHeader}>Invite New Staff Operator</h3>
+            
+            <div className="form-group">
+              <label className="form-label">Staff Name</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Asif Mahmud"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </div>
-          </div>
 
-          <button type="submit" className="btn btn-primary" style={styles.submitBtn} disabled={submitting}>
-            {submitting ? 'Registering Staff...' : 'Create Staff Member'}
-          </button>
-        </form>
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input
+                type="email"
+                className="form-input"
+                placeholder="operator@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        {/* Collaborators List */}
-        <div className="glass card" style={styles.listCard}>
-          <h3 style={styles.sectionHeader}>Active Business Collaborators</h3>
-          {collaborators.length === 0 ? (
-            <p style={styles.emptyText}>No staff members added to this business profile yet.</p>
-          ) : (
-            <div style={styles.collList}>
-              {collaborators.map((coll) => (
-                <div key={coll._id} style={styles.collItem}>
-                  <div style={styles.collMeta}>
-                    <span style={styles.collName}>{coll.name}</span>
-                    <span style={styles.collContacts}>{coll.email} | {coll.phone}</span>
-                    
-                    <div style={styles.badgesRow}>
-                      {coll.permissions.map((perm, idx) => (
-                        <span key={idx} className="badge badge-secondary" style={{ fontSize: '0.6rem' }}>
-                          {perm}
-                        </span>
-                      ))}
+            <div className="form-group">
+              <label className="form-label">Mobile Phone</label>
+              <input
+                type="tel"
+                className="form-input"
+                placeholder="e.g. 017XXXXXXXX"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Temporary Password</label>
+              <input
+                type="password"
+                className="form-input"
+                placeholder="Minimum 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Permissions selectors */}
+            <div className="form-group">
+              <label className="form-label">Configure Feature Permissions (FR-17.2)</label>
+              <div style={styles.permList}>
+                <label style={styles.permCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={permissions.includes('products')}
+                    onChange={() => handlePermissionChange('products')}
+                  />
+                  &nbsp;Product Catalog Management (FR-13)
+                </label>
+                <label style={styles.permCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={permissions.includes('marketplace')}
+                    onChange={() => handlePermissionChange('marketplace')}
+                  />
+                  &nbsp;Design Marketplace access (FR-7)
+                </label>
+                <label style={styles.permCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={permissions.includes('content')}
+                    onChange={() => handlePermissionChange('content')}
+                  />
+                  &nbsp;Content Publishing & calendar (FR-3)
+                </label>
+                <label style={styles.permCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={permissions.includes('analytics')}
+                    onChange={() => handlePermissionChange('analytics')}
+                  />
+                  &nbsp;Dashboard reports & analytics (FR-9)
+                </label>
+                <label style={styles.permCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={permissions.includes('faq')}
+                    onChange={() => handlePermissionChange('faq')}
+                  />
+                  &nbsp;FAQ Assistant configurations (FR-18)
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" className="btn btn-primary" style={styles.submitBtn} disabled={submitting}>
+              {submitting ? 'Registering Staff...' : 'Create Staff Member'}
+            </button>
+          </form>
+
+          {/* Collaborators List */}
+          <div className="glass card" style={styles.listCard}>
+            <h3 style={styles.sectionHeader}>Active Business Collaborators</h3>
+            {loading ? (
+              <p style={styles.emptyText}>Loading staff list...</p>
+            ) : collaborators.length === 0 ? (
+              <p style={styles.emptyText}>No staff members added to this business profile yet.</p>
+            ) : (
+              <div style={styles.collList}>
+                {collaborators.map((coll) => (
+                  <div key={coll._id} style={styles.collItem}>
+                    <div style={styles.collMeta}>
+                      <span style={styles.collName}>{coll.name}</span>
+                      <span style={styles.collContacts}>{coll.email} | {coll.phone}</span>
+                      
+                      <div style={styles.badgesRow}>
+                        {coll.permissions.map((perm, idx) => (
+                          <span key={idx} className="badge badge-secondary" style={{ fontSize: '0.6rem' }}>
+                            {perm}
+                          </span>
+                        ))}
+                      </div>
                     </div>
+                    <button 
+                      className="btn btn-danger" 
+                      style={styles.revokeBtn}
+                      onClick={() => handleRemove(coll._id)}
+                    >
+                      Revoke Access
+                    </button>
                   </div>
-                  <button 
-                    className="btn btn-danger" 
-                    style={styles.revokeBtn}
-                    onClick={() => handleRemove(coll._id)}
-                  >
-                    Revoke
-                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* View 2: Audit Log Timeline (FR-17.3) */}
+      {activeTab === 'audit' && (
+        <div className="glass card" style={styles.auditCard}>
+          <h3 style={styles.sectionHeader}>📜 Team Activity & Action Audit Log</h3>
+          {loading ? (
+            <p style={styles.emptyText}>Loading audit logs...</p>
+          ) : auditLogs.length === 0 ? (
+            <p style={styles.emptyText}>No collaborator activities recorded yet.</p>
+          ) : (
+            <div style={styles.auditTimeline}>
+              {auditLogs.map((log) => (
+                <div key={log._id} style={styles.auditItem}>
+                  <div style={styles.auditTime}>
+                    {new Date(log.createdAt).toLocaleString()}
+                  </div>
+                  <div style={styles.auditBody}>
+                    <span style={styles.auditPerformer}>
+                      👤 {log.performerName} ({log.performerRole})
+                    </span>
+                    <span className="badge badge-secondary" style={{ fontSize: '0.65rem' }}>
+                      {log.action}
+                    </span>
+                    <p style={styles.auditDetails}>{log.details}</p>
+                    {log.targetResource && (
+                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Resource: {log.targetResource}</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -238,7 +303,7 @@ const styles = {
   container: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '12px',
   },
   pageTitle: {
     fontSize: '1.8rem',
@@ -248,7 +313,7 @@ const styles = {
   pageSubtitle: {
     fontSize: '0.9rem',
     color: '#cbd5e1',
-    marginBottom: '24px',
+    marginBottom: '8px',
   },
   successAlert: {
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -257,7 +322,6 @@ const styles = {
     padding: '12px 16px',
     borderRadius: '10px',
     fontSize: '0.85rem',
-    marginBottom: '24px',
   },
   errorAlert: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -266,7 +330,27 @@ const styles = {
     padding: '12px 16px',
     borderRadius: '10px',
     fontSize: '0.85rem',
-    marginBottom: '24px',
+  },
+  tabContainer: {
+    display: 'flex',
+    gap: '12px',
+    borderBottom: '1px solid rgba(255,255,255,0.08)',
+    paddingBottom: '8px',
+    marginBottom: '16px',
+  },
+  tabBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#94a3b8',
+    fontSize: '0.9rem',
+    fontWeight: '700',
+    padding: '8px 16px',
+    cursor: 'pointer',
+    borderRadius: '8px',
+  },
+  tabBtnActive: {
+    color: '#fff',
+    backgroundColor: 'rgba(99, 102, 241, 0.2)',
   },
   layout: {
     display: 'grid',
@@ -307,6 +391,9 @@ const styles = {
   listCard: {
     padding: '30px',
     backgroundColor: '#12131a',
+  },
+  auditCard: {
+    padding: '30px',
   },
   emptyText: {
     padding: '24px',
@@ -352,5 +439,39 @@ const styles = {
     padding: '6px 12px',
     fontSize: '0.75rem',
   },
+  auditTimeline: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  auditItem: {
+    display: 'flex',
+    gap: '16px',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    border: '1px solid rgba(255,255,255,0.04)',
+    padding: '12px 16px',
+    borderRadius: '8px',
+    alignItems: 'flex-start',
+  },
+  auditTime: {
+    fontSize: '0.75rem',
+    color: '#64748b',
+    minWidth: '150px',
+  },
+  auditBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  auditPerformer: {
+    fontWeight: '700',
+    color: '#38bdf8',
+    fontSize: '0.85rem',
+  },
+  auditDetails: {
+    fontSize: '0.85rem',
+    color: '#cbd5e1',
+  },
 };
+
 export default Collaborators;
