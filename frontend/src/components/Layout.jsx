@@ -2,10 +2,16 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 
-export const Layout = ({ activeTab, onTabChange, subscription }) => {
+export const Layout = ({
+    children,
+    activeTab,
+    onTabChange,
+    subscription
+}) => {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const creditsRemaining = subscription?.credits?.current ?? 0;
   const creditsTotal = subscription?.credits?.total ?? 20;
@@ -27,7 +33,14 @@ export const Layout = ({ activeTab, onTabChange, subscription }) => {
   return (
     <div style={styles.container}>
       {/* Sidebar Navigation */}
-      <aside className="glass" style={styles.sidebar}>
+      <aside 
+        className="glass" 
+        style={{ 
+          ...styles.sidebar, 
+          transform: sidebarCollapsed ? 'translateX(-260px)' : 'none',
+          transition: 'transform 0.3s ease',
+        }}
+      >
         <div style={styles.brandBox}>
           <div style={styles.logoCircle}>B</div>
           <div>
@@ -43,6 +56,66 @@ export const Layout = ({ activeTab, onTabChange, subscription }) => {
           >
             📊 Dashboard
           </button>
+
+          {/* AI Brand Identity Navigation (Sellers, Collaborators with 'brand_kit' permission) */}
+          {(user?.role === 'seller' || canAccess('brand_kit')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'brandkit' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('brandkit')}
+            >
+              ✨ AI Brand Identity
+            </button>
+          )}
+
+          {/* Brand Style Guide Export Navigation (FR-15) */}
+          {(user?.role === 'seller' || canAccess('brand_kit')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'styleguide' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('styleguide')}
+            >
+              📘 Brand Style Guide
+            </button>
+          )}
+
+          {/* Content Generation & Calendar Navigation (Sellers, Collaborators with 'content' permission) */}
+          {(user?.role === 'seller' || canAccess('content')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'content' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('content')}
+            >
+              📝 Content Calendar
+            </button>
+          )}
+
+          {/* Hashtag & SEO Suggestion Generator Navigation (FR-14) */}
+          {(user?.role === 'seller' || canAccess('content')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'hashtags' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('hashtags')}
+            >
+              #️⃣ Hashtag & SEO
+            </button>
+          )}
+
+          {/* Poster & Banner Template Editor Navigation (Sellers, Collaborators with 'content' permission) */}
+          {(user?.role === 'seller' || canAccess('content')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'templates' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('templates')}
+            >
+              🖼️ Banner Editor
+            </button>
+          )}
+
+          {/* Analytics Navigation (Sellers, Collaborators) */}
+          {(user?.role === 'seller' || canAccess('analytics')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'analytics' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('analytics')}
+            >
+              📈 Analytics & Insights
+            </button>
+          )}
 
           {/* Product Catalog Navigation (Sellers, Collaborators with 'products' permission) */}
           {(user?.role === 'seller' || canAccess('products')) && (
@@ -87,6 +160,24 @@ export const Layout = ({ activeTab, onTabChange, subscription }) => {
             </button>
           )}
 
+          {user?.role === 'admin' && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'admin' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('admin')}
+            >
+              🛠️ Admin Panel
+            </button>
+          )}
+
+          {(user?.role === 'seller' || user?.role === 'collaborator') && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'gamification' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('gamification')}
+            >
+              🏆 Brand Score
+            </button>
+          )}
+
           <button 
             style={{ ...styles.navItem, ...(activeTab === 'notifications' ? styles.navItemActive : {}) }}
             onClick={() => onTabChange('notifications')}
@@ -104,10 +195,35 @@ export const Layout = ({ activeTab, onTabChange, subscription }) => {
       </aside>
 
       {/* Main Content Area */}
-      <div style={styles.mainWrapper}>
+      <div 
+        style={{ 
+          ...styles.mainWrapper, 
+          marginLeft: sidebarCollapsed ? '0px' : '260px',
+          transition: 'margin-left 0.3s ease',
+        }}
+      >
         {/* Top Header */}
         <header className="glass" style={styles.header}>
           <div style={styles.headerLeft}>
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#fff',
+                fontSize: '1.2rem',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                marginRight: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title={sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
+            >
+              {sidebarCollapsed ? '☰' : '◀'}
+            </button>
             {user?.role === 'seller' && subscription && (
               <div style={styles.creditStats}>
                 <span style={styles.creditLabel}>Credits:</span>
@@ -183,7 +299,7 @@ export const Layout = ({ activeTab, onTabChange, subscription }) => {
               {user?.profilePicture ? (
                 <img src={user.profilePicture} alt="Profile" style={styles.profilePic} />
               ) : (
-                <div style={styles.avatarPlaceholder}>{user?.name?.slice(0, 2).toUpperCase()}</div>
+                <div style={styles.avatarPlaceholder}>{user?.name?.slice(0, 2)?.toUpperCase() || ''}</div>
               )}
               <div>
                 <div style={styles.profileName}>{user?.name}</div>
@@ -261,6 +377,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
+    overflowY: 'auto',
   },
   navItem: {
     display: 'flex',

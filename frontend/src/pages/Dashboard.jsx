@@ -1,14 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { useNotifications } from '../context/NotificationContext';
 
-export const Dashboard = ({ subscription, refreshSub }) => {
+export const Dashboard = ({ subscription, refreshSub, onTabChange }) => {
   const { user } = useAuth();
   const { fetchNotifications } = useNotifications();
   const [simulating, setSimulating] = useState(false);
   const [sandboxResult, setSandboxResult] = useState('');
   const [sandboxError, setSandboxError] = useState('');
+  const [scheduledCount, setScheduledCount] = useState(0);
+
+  const fetchScheduledCount = async () => {
+    try {
+      const res = await api.content.getPosts({ status: 'Scheduled' });
+      if (res.success && res.data) {
+        setScheduledCount(res.data.length);
+      }
+    } catch (err) {
+      console.error('Failed to load scheduled count:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === 'seller' || user?.role === 'collaborator') {
+      fetchScheduledCount();
+    }
+  }, [user]);
 
   const runCreditSandbox = async (cost, operationName) => {
     setSimulating(true);
@@ -43,7 +61,7 @@ export const Dashboard = ({ subscription, refreshSub }) => {
             <span className="badge badge-primary">{user?.role}</span>
             <span className="badge badge-success">Account Active</span>
             {user?.role === 'seller' && (
-              <span className="badge badge-secondary">{subscription?.tier.toUpperCase()} PLAN</span>
+              <span className="badge badge-secondary">{subscription?.tier?.toUpperCase() || 'FREE'} PLAN</span>
             )}
           </div>
         </div>
@@ -58,14 +76,14 @@ export const Dashboard = ({ subscription, refreshSub }) => {
             <div className="card glass glass-hover" style={styles.statCard}>
               <span style={styles.statIcon}>📊</span>
               <div>
-                <div style={styles.statNum}>78%</div>
+                <div style={styles.statNum}>{user?.brandingScore || 0}%</div>
                 <div style={styles.statLabel}>Branding Score</div>
               </div>
             </div>
             <div className="card glass glass-hover" style={styles.statCard}>
               <span style={styles.statIcon}>📅</span>
               <div>
-                <div style={styles.statNum}>4 Scheduled</div>
+                <div style={styles.statNum}>{scheduledCount} Scheduled</div>
                 <div style={styles.statLabel}>Active Posts</div>
               </div>
             </div>
@@ -117,16 +135,50 @@ export const Dashboard = ({ subscription, refreshSub }) => {
           </div>
 
           {/* Core Feature Scaffolds */}
-          <div className="grid grid-2">
+          <div className="grid grid-2" style={{ gap: '20px' }}>
             <div className="card glass" style={styles.infoBlock}>
               <h3 style={styles.cardTitle}>🎨 Brand Identity Generation</h3>
               <p style={styles.cardText}>Fill out our questionnaire to generate a dynamic color palette, taglines, and logotypes scoped to your industry.</p>
-              <button className="btn btn-primary" style={{ width: 'fit-content' }}>Open Questionnaire</button>
+              <button 
+                className="btn btn-primary" 
+                style={{ width: 'fit-content' }}
+                onClick={() => onTabChange && onTabChange('brandkit')}
+              >
+                Open Questionnaire
+              </button>
             </div>
             <div className="card glass" style={styles.infoBlock}>
-              <h3 style={styles.cardTitle}>💬 sentiment Comment Classifier</h3>
+              <h3 style={styles.cardTitle}>📘 Brand Style Guide Export</h3>
+              <p style={styles.cardText}>Auto-generate and customize printable brand guidelines with logo clear space rules, HEX/RGB palettes, and font guidelines.</p>
+              <button 
+                className="btn btn-primary" 
+                style={{ width: 'fit-content' }}
+                onClick={() => onTabChange && onTabChange('styleguide')}
+              >
+                Export Style Guide PDF
+              </button>
+            </div>
+            <div className="card glass" style={styles.infoBlock}>
+              <h3 style={styles.cardTitle}>#️⃣ Hashtag & SEO Generator</h3>
+              <p style={styles.cardText}>Generate popularity-ranked Bangla & English hashtags, save templates, and optimize post title/meta descriptions.</p>
+              <button 
+                className="btn btn-primary" 
+                style={{ width: 'fit-content' }}
+                onClick={() => onTabChange && onTabChange('hashtags')}
+              >
+                Generate Hashtags & SEO
+              </button>
+            </div>
+            <div className="card glass" style={styles.infoBlock}>
+              <h3 style={styles.cardTitle}>💬 Sentiment Comment Classifier</h3>
               <p style={styles.cardText}>Securely connect your Facebook Business Page API. Automatically categorize comments into positive, neutral, or negative categories.</p>
-              <button className="btn btn-accent" style={{ width: 'fit-content' }}>Link Page API</button>
+              <button 
+                className="btn btn-accent" 
+                style={{ width: 'fit-content' }}
+                onClick={() => onTabChange && onTabChange('analytics')}
+              >
+                Link Page API
+              </button>
             </div>
           </div>
         </div>
@@ -151,7 +203,6 @@ export const Dashboard = ({ subscription, refreshSub }) => {
             </div>
             <div className="card glass" style={styles.statCard}>
               <span style={styles.statIcon}>💸</span>
-              className
               <div>
                 <div style={styles.statNum}>18,500 BDT</div>
                 <div style={styles.statLabel}>Marketplace Earnings</div>
@@ -175,7 +226,7 @@ export const Dashboard = ({ subscription, refreshSub }) => {
             </p>
             <h4 style={{ color: '#818cf8', marginTop: '16px', fontSize: '0.9rem' }}>Active Workspace Permissions:</h4>
             <ul style={styles.permissionsList}>
-              {user.permissions?.map((perm, idx) => (
+              {user?.permissions?.map((perm, idx) => (
                 <li key={idx} style={styles.permissionItem}>🔑 {perm.toUpperCase()} ACCESS</li>
               )) || <li>No custom permissions configured</li>}
             </ul>

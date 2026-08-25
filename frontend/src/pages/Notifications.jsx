@@ -21,7 +21,7 @@ export const Notifications = () => {
       <div style={styles.header}>
         <div>
           <h2 style={styles.pageTitle}>🔔 Notifications Center</h2>
-          <p style={styles.pageSubtitle}>Review active system alerts, transaction completions, and credit metrics (FR-11)</p>
+          <p style={styles.pageSubtitle}>Review active system alerts, transaction completions, and credit metrics</p>
         </div>
         {unreadCount > 0 && (
           <button className="btn btn-secondary" onClick={markAllAsRead}>

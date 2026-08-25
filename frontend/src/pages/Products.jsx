@@ -224,7 +224,7 @@ export const Products = () => {
       <div style={styles.headerRow}>
         <div>
           <h2 style={styles.pageTitle}>📦 Product Catalog Management</h2>
-          <p style={styles.pageSubtitle}>Manage your products, collections, bulk import, and auto-pull data for AI captions (FR-13)</p>
+          <p style={styles.pageSubtitle}>Manage your products, collections, bulk import, and auto-pull data for AI captions</p>
         </div>
 
         <div style={styles.btnGroup}>
@@ -310,7 +310,7 @@ export const Products = () => {
                     className="btn btn-secondary" 
                     style={styles.actionBtn}
                     onClick={() => handleAutoPull(prod._id)}
-                    title="Auto-pull data into AI caption prompt (FR-13.4)"
+                    title="Auto-pull data into AI caption prompt"
                   >
                     ✨ Auto-Pull
                   </button>

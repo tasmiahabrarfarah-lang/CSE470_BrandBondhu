@@ -14,6 +14,14 @@ import { Collaborators } from './pages/Collaborators';
 import { Notifications } from './pages/Notifications';
 import { Products } from './pages/Products';
 import { Marketplace } from './pages/Marketplace';
+import { AnalyticsDashboard } from './pages/AnalyticsDashboard';
+import { BrandIdentity } from './pages/BrandIdentity';
+import { ContentManager } from './pages/ContentManager';
+import { BannerEditor } from './pages/BannerEditor';
+import { AdminPanel } from './pages/AdminPanel';
+import { Gamification } from './pages/Gamification';
+import { HashtagGenerator } from './pages/HashtagGenerator';
+import { BrandStyleGuide } from './pages/BrandStyleGuide';
 import { Layout } from './components/Layout';
 
 // SPA Router Component Container
@@ -111,8 +119,17 @@ const InnerApp = () => {
         subscription={subscription}
       >
         {activeTab === 'dashboard' && (
-          <Dashboard subscription={subscription} refreshSub={fetchSubscription} />
+          <Dashboard 
+            subscription={subscription} 
+            refreshSub={fetchSubscription} 
+            onTabChange={handleDashboardTabChange}
+          />
         )}
+        {activeTab === 'brandkit' && <BrandIdentity />}
+        {activeTab === 'styleguide' && <BrandStyleGuide />}
+        {activeTab === 'content' && <ContentManager />}
+        {activeTab === 'hashtags' && <HashtagGenerator />}
+        {activeTab === 'templates' && <BannerEditor />}
         {activeTab === 'products' && <Products />}
         {activeTab === 'marketplace' && <Marketplace />}
         {activeTab === 'profile' && <Profile />}
@@ -121,6 +138,9 @@ const InnerApp = () => {
         )}
         {activeTab === 'collaborators' && <Collaborators />}
         {activeTab === 'notifications' && <Notifications />}
+        {activeTab === 'analytics' && <AnalyticsDashboard />}
+        {activeTab === 'admin' && <AdminPanel />}
+        {activeTab === 'gamification' && <Gamification />}
       </Layout>
     );
   }
