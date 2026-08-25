@@ -1,7 +1,10 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Subscription from '../models/Subscription.js';
+import Referral from '../models/Referral.js';
+import Notification from '../models/Notification.js';
 import { sendOTP, sendEmail } from '../utils/email.js';
+import { generateUniqueReferralCode } from './referralController.js';
 
 // Helper to generate JWT Token response
 const sendTokenResponse = (user, statusCode, res) => {
@@ -37,7 +40,8 @@ const sendTokenResponse = (user, statusCode, res) => {
         businessInfo: user.businessInfo,
         portfolioInfo: user.portfolioInfo,
         ownerId: user.ownerId,
-        profilePicture: user.profilePicture
+        profilePicture: user.profilePicture,
+        referralCode: user.referralCode,
       },
     });
 };
@@ -47,7 +51,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @access  Public
 export const register = async (req, res) => {
   try {
-    const { name, email, phone, password, role, businessName, industry } = req.body;
+    const { name, email, phone, password, role, businessName, industry, referralCode } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ $or: [{ email }, { phone }] });
@@ -58,6 +62,15 @@ export const register = async (req, res) => {
     // Role safety (Collaborators are created by Sellers, not via open signup)
     if (role === 'admin' || role === 'collaborator') {
       return res.status(400).json({ success: false, message: 'Invalid role signup selection' });
+    }
+
+    // Generate unique referral code for this new user (FR-20.1)
+    const newRefCode = await generateUniqueReferralCode(name);
+
+    // Check if registering with someone else's referral code
+    let referrerUser = null;
+    if (referralCode) {
+      referrerUser = await User.findOne({ referralCode: referralCode.toUpperCase().trim() });
     }
 
     // Generate 6-digit OTP
@@ -73,6 +86,8 @@ export const register = async (req, res) => {
       status: 'pending',
       verificationOTP: otp,
       verificationExpires: otpExpires,
+      referralCode: newRefCode,
+      referredBy: referrerUser ? referrerUser._id : null,
     };
 
     if (role === 'seller') {
@@ -133,6 +148,53 @@ export const verifyOTP = async (req, res) => {
     user.verificationExpires = null;
     await user.save();
 
+    // Referral Bonus Credit Processing (FR-20.2)
+    if (user.referredBy) {
+      const referrer = await User.findById(user.referredBy);
+      if (referrer) {
+        // Create Referral Record
+        await Referral.create({
+          referrerId: referrer._id,
+          refereeId: user._id,
+          referralCode: referrer.referralCode,
+          bonusCreditsAwarded: { referrerBonus: 15, refereeBonus: 10 },
+          status: 'Completed',
+        });
+
+        // Award Referrer +15 credits
+        let referrerSub = await Subscription.findOne({ userId: referrer._id });
+        if (referrerSub) {
+          referrerSub.credits.current += 15;
+          referrerSub.credits.total += 15;
+          await referrerSub.save();
+        }
+
+        // Award Referee +10 credits
+        let refereeSub = await Subscription.findOne({ userId: user._id });
+        if (refereeSub) {
+          refereeSub.credits.current += 10;
+          refereeSub.credits.total += 10;
+          await refereeSub.save();
+        }
+
+        // Notify Referrer
+        await Notification.create({
+          userId: referrer._id,
+          title: '🎉 Referral Bonus Earned!',
+          message: `${user.name} registered using your referral link! You earned +15 bonus AI credits.`,
+          type: 'alert',
+        });
+
+        // Notify Referee
+        await Notification.create({
+          userId: user._id,
+          title: '🎁 Welcome Bonus Received!',
+          message: 'You earned +10 bonus AI credits for signing up via a referral link!',
+          type: 'alert',
+        });
+      }
+    }
+
     sendTokenResponse(user, 200, res);
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -176,10 +238,6 @@ export const login = async (req, res) => {
 
     if (user.status === 'deactivated') {
       return res.status(403).json({ success: false, message: 'Your account is deactivated. Contact Support.' });
-    }
-
-    if (user.status === 'suspended') {
-      return res.status(403).json({ success: false, message: 'Your account has been suspended. Contact Support.' });
     }
 
     // Check if password matches
@@ -289,26 +347,5 @@ export const deleteAccount = async (req, res) => {
     res.status(200).json({ success: true, message: 'Account permanently deleted.' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// Seed default administrator account if none exists
-export const seedDefaultAdmin = async () => {
-  try {
-    const admin = await User.findOne({ role: 'admin' });
-    if (!admin) {
-      console.log('Seeding default admin user...');
-      await User.create({
-        name: 'System Administrator',
-        email: 'admin@brandbondhu.com',
-        phone: '01900000000',
-        password: 'adminpassword123',
-        role: 'admin',
-        status: 'active',
-      });
-      console.log('Default admin user seeded successfully.');
-    }
-  } catch (error) {
-    console.error('Failed to seed default admin:', error.message);
   }
 };

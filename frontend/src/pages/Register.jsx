@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 
 export const Register = ({ onNavigate }) => {
   const { register, error, setError } = useAuth();
@@ -11,7 +12,33 @@ export const Register = ({ onNavigate }) => {
   const [role, setRole] = useState('seller');
   const [businessName, setBusinessName] = useState('');
   const [industry, setIndustry] = useState('');
+  const [referralCode, setReferralCode] = useState('');
+  const [refValidated, setRefValidated] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Check URL query parameters for referral code e.g. /register?ref=REF-12345
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refParam = params.get('ref');
+    if (refParam) {
+      setReferralCode(refParam.toUpperCase());
+      validateRef(refParam);
+    }
+  }, []);
+
+  const validateRef = async (code) => {
+    if (!code) return;
+    try {
+      const res = await api.referrals.validateCode(code);
+      if (res.success) {
+        setRefValidated(res.data);
+      } else {
+        setRefValidated(null);
+      }
+    } catch (err) {
+      setRefValidated(null);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,6 +55,7 @@ export const Register = ({ onNavigate }) => {
         role,
         businessName: role === 'seller' ? businessName : undefined,
         industry: role === 'seller' ? industry : undefined,
+        referralCode: referralCode || undefined,
       });
 
       if (res.success) {
@@ -144,6 +172,27 @@ export const Register = ({ onNavigate }) => {
             </div>
           )}
 
+          {/* Referral Code input field (FR-20) */}
+          <div className="form-group">
+            <label className="form-label">Referral Code (Optional)</label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="e.g. REF-ABC123"
+              value={referralCode}
+              onChange={(e) => {
+                const code = e.target.value.toUpperCase();
+                setReferralCode(code);
+                if (code.length >= 6) validateRef(code);
+              }}
+            />
+            {refValidated && (
+              <div style={styles.referralSuccessAlert}>
+                🎁 Valid referral code from <strong>{refValidated.referrerName}</strong>! You will earn <strong>+10 bonus AI credits</strong>.
+              </div>
+            )}
+          </div>
+
           <button 
             type="submit" 
             className="btn btn-primary" 
@@ -204,6 +253,15 @@ const styles = {
     borderRadius: '8px',
     fontSize: '0.85rem',
     marginBottom: '20px',
+  },
+  referralSuccessAlert: {
+    backgroundColor: 'rgba(52, 211, 153, 0.15)',
+    border: '1px solid rgba(52, 211, 153, 0.3)',
+    color: '#34d399',
+    padding: '8px 12px',
+    borderRadius: '8px',
+    fontSize: '0.8rem',
+    marginTop: '6px',
   },
   form: {
     display: 'flex',

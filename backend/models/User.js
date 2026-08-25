@@ -34,7 +34,7 @@ const UserSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'active', 'deactivated', 'suspended'],
+      enum: ['pending', 'active', 'deactivated'],
       default: 'pending',
     },
     profilePicture: {
@@ -80,27 +80,15 @@ const UserSchema = new mongoose.Schema(
       hourlyRate: { type: Number, default: 0 },
       portfolioLinks: { type: [String], default: [] },
     },
-    brandingScore: {
-      type: Number,
-      default: 0,
+    // Referral & Loyalty Program (FR-20)
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
-    badges: [
-      {
-        name: { type: String, required: true },
-        description: { type: String, default: '' },
-        awardedAt: { type: Date, default: Date.now },
-      },
-    ],
-    optInLeaderboard: {
-      type: Boolean,
-      default: false,
-    },
-    streakDays: {
-      type: Number,
-      default: 0,
-    },
-    lastPostDate: {
-      type: Date,
+    referredBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
       default: null,
     },
   },
@@ -112,11 +100,10 @@ const UserSchema = new mongoose.Schema(
 // Hash password before saving
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
-    return next();
+    next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 // Compare password
