@@ -281,8 +281,33 @@ export const triggerPostReminders = async (req, res) => {
 
       post.reminderSent = true;
       if (post.scheduledAt <= now) {
-        post.status = 'Published';
-        post.publishedAt = now;
+        let allSuccess = true;
+        // Attempt to publish to platforms
+        if (post.platforms.includes('Facebook')) {
+          const fbToken = process.env.FB_PAGE_TOKEN || 'mock_token';
+          const pageId = process.env.FB_PAGE_ID || 'mock_page_id';
+          
+          // Using dynamic import or we can import at the top
+          // It's better to import at the top, I'll add the import later
+          if (fbToken !== 'mock_token') {
+            const { publishToFacebook } = await import('../utils/facebookGraphAPI.js');
+            const result = await publishToFacebook(fbToken, pageId, post.caption.activeText, post.mediaUrl);
+            if (!result.success) {
+               allSuccess = false;
+               console.error(`Failed to publish post ${post._id} to Facebook: ${result.error}`);
+            }
+          } else {
+             // Mock success
+             console.log(`Mock published post ${post._id} to Facebook`);
+          }
+        }
+        
+        if (allSuccess) {
+          post.status = 'Published';
+          post.publishedAt = now;
+        } else {
+          post.status = 'Failed';
+        }
       }
       await post.save();
       processedCount++;

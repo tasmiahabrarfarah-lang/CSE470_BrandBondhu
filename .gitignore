@@ -8,3 +8,7 @@ build/
 frontend/dist
 backend/node_modules
 frontend/node_modules
+
+# Generated Documentation (Do not push)
+TESTING_GUIDE.md
+TECHNICAL_DOCUMENTATION.md

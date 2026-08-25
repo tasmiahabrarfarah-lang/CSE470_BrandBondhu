@@ -22,6 +22,7 @@ import { AdminPanel } from './pages/AdminPanel';
 import { Gamification } from './pages/Gamification';
 import { HashtagGenerator } from './pages/HashtagGenerator';
 import { BrandStyleGuide } from './pages/BrandStyleGuide';
+import { FAQManager } from './pages/FAQManager';
 import { Layout } from './components/Layout';
 
 // SPA Router Component Container
@@ -139,6 +140,7 @@ const InnerApp = () => {
         {activeTab === 'collaborators' && <Collaborators />}
         {activeTab === 'notifications' && <Notifications />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
+        {activeTab === 'faq' && <FAQManager />}
         {activeTab === 'admin' && <AdminPanel />}
         {activeTab === 'gamification' && <Gamification />}
       </Layout>

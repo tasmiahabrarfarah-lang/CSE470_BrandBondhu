@@ -109,12 +109,20 @@ export const Layout = ({
 
           {/* Analytics Navigation (Sellers, Collaborators) */}
           {(user?.role === 'seller' || canAccess('analytics')) && (
-            <button 
-              style={{ ...styles.navItem, ...(activeTab === 'analytics' ? styles.navItemActive : {}) }}
-              onClick={() => onTabChange('analytics')}
-            >
-              📈 Analytics & Insights
-            </button>
+            <>
+              <button 
+                style={{ ...styles.navItem, ...(activeTab === 'analytics' ? styles.navItemActive : {}) }}
+                onClick={() => onTabChange('analytics')}
+              >
+                📈 Analytics & Insights
+              </button>
+              <button 
+                style={{ ...styles.navItem, ...(activeTab === 'faq' ? styles.navItemActive : {}) }}
+                onClick={() => onTabChange('faq')}
+              >
+                🤖 FAQ Assistant
+              </button>
+            </>
           )}
 
           {/* Product Catalog Navigation (Sellers, Collaborators with 'products' permission) */}

@@ -602,6 +602,32 @@ export const api = {
       }).then(handleResponse),
   },
 
+  // FAQ Manager (FR-Group 2)
+  faq: {
+    getAll: () =>
+      fetch(`${BASE_URL}/faq`, {
+        method: 'GET',
+        headers: getHeaders()
+      }).then(handleResponse),
+    create: (body) =>
+      fetch(`${BASE_URL}/faq`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+    update: (id, body) =>
+      fetch(`${BASE_URL}/faq/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      }).then(handleResponse),
+    delete: (id) =>
+      fetch(`${BASE_URL}/faq/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      }).then(handleResponse),
+  },
+
   // Brand Style Guide Export (FR-15)
   styleGuide: {
     get: (brandKitId) =>

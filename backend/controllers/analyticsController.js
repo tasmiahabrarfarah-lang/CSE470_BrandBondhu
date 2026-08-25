@@ -1,6 +1,7 @@
 import Competitor from '../models/Competitor.js';
 import SocialComment from '../models/SocialComment.js';
 import User from '../models/User.js';
+import { processCommentForFAQ } from './faqController.js';
 
 // FR-5: Sentiment Analysis
 export const getSentimentAnalysis = async (req, res) => {
@@ -33,8 +34,15 @@ export const syncCommentsMock = async (req, res) => {
       { userId: req.user._id, content: "Delivery was very late and packaging was torn.", sentiment: 'negative', isFlagged: true, suggestedReply: "We are so sorry for the inconvenience! Please DM us your order number so we can make this right." },
       { userId: req.user._id, content: "How much is this?", sentiment: 'neutral' }
     ];
-    await SocialComment.insertMany(newComments);
-    res.json({ success: true, message: 'Comments synced and analyzed successfully.' });
+    const insertedComments = await SocialComment.insertMany(newComments);
+    
+    // Process comments for automated FAQ responses
+    const fbToken = process.env.FB_PAGE_TOKEN || 'mock_token';
+    for (let comment of insertedComments) {
+       await processCommentForFAQ(req.user._id, comment.content, comment._id.toString(), fbToken);
+    }
+    
+    res.json({ success: true, message: 'Comments synced, analyzed, and processed for FAQs successfully.' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
