@@ -19,6 +19,8 @@ import contentRoutes from './routes/contentRoutes.js';
 import templateRoutes from './routes/templateRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import gamificationRoutes from './routes/gamificationRoutes.js';
+import hashtagRoutes from './routes/hashtagRoutes.js';
+import styleGuideRoutes from './routes/styleGuideRoutes.js';
 import { seedPrebuiltTemplates } from './controllers/templateController.js';
 import { seedSubscriptionTiers } from './controllers/subscriptionController.js';
 import { seedDefaultAdmin } from './controllers/authController.js';
@@ -62,6 +64,8 @@ app.use('/api/content', contentRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/gamification', gamificationRoutes);
+app.use('/api/hashtags', hashtagRoutes);
+app.use('/api/style-guide', styleGuideRoutes);
 
 // Base API status route
 app.get('/api/health', (req, res) => {

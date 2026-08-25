@@ -59,6 +59,16 @@ export const Layout = ({
             </button>
           )}
 
+          {/* Brand Style Guide Export Navigation (FR-15) */}
+          {(user?.role === 'seller' || canAccess('brand_kit')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'styleguide' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('styleguide')}
+            >
+              📘 Brand Style Guide
+            </button>
+          )}
+
           {/* Content Generation & Calendar Navigation (Sellers, Collaborators with 'content' permission) */}
           {(user?.role === 'seller' || canAccess('content')) && (
             <button 
@@ -66,6 +76,16 @@ export const Layout = ({
               onClick={() => onTabChange('content')}
             >
               📝 Content Calendar
+            </button>
+          )}
+
+          {/* Hashtag & SEO Suggestion Generator Navigation (FR-14) */}
+          {(user?.role === 'seller' || canAccess('content')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'hashtags' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('hashtags')}
+            >
+              #️⃣ Hashtag & SEO
             </button>
           )}
 
