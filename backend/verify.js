@@ -7,9 +7,8 @@ import Notification from './models/Notification.js';
 import Product from './models/Product.js';
 import DesignJob from './models/DesignJob.js';
 import AuditLog from './models/AuditLog.js';
-import BrandKit from './models/BrandKit.js';
-import ScheduledPost from './models/ScheduledPost.js';
-import BannerTemplate from './models/BannerTemplate.js';
+import SupportTicket from './models/SupportTicket.js';
+import Referral from './models/Referral.js';
 
 const PORT = 5099;
 const BASE_URL = `http://localhost:${PORT}/api`;
@@ -21,17 +20,7 @@ const logTest = (step, status, details = '') => {
 
 const runTests = async () => {
   let server;
-  let mongod;
   try {
-    try {
-      const { MongoMemoryServer } = await import('mongodb-memory-server');
-      mongod = await MongoMemoryServer.create();
-      process.env.MONGO_URI = mongod.getUri();
-      console.log(`Spinning up MongoMemoryServer at ${process.env.MONGO_URI}`);
-    } catch (e) {
-      // Fallback if not available
-    }
-
     // Start server programmatically
     server = app.listen(PORT, async () => {
       console.log(`Test server booted on port ${PORT}`);
@@ -277,7 +266,7 @@ const runTests = async () => {
             email: 'collaborator@brandbondhu.com',
             phone: '01898765432',
             password: 'password1234',
-            permissions: ['products', 'marketplace', 'content', 'brand_kit'],
+            permissions: ['products', 'marketplace', 'content'],
           }),
         });
         const collData = await collRes.json();
@@ -296,142 +285,152 @@ const runTests = async () => {
         }
         logTest('13. Team Access - Audit Log Timeline (FR-17.3)', 'SUCCESS', `Logged ${auditData.data.length} activities, latest: "${auditData.data[0].action}"`);
 
-        // Test 14: AI Brand Identity Generation (FR-2.1 - FR-2.4)
-        const genBrandRes = await fetch(`${BASE_URL}/brand-kit/generate`, {
+        // Test 14: Support Ticket System - Submit Ticket (FR-19.1)
+        const ticketRes = await fetch(`${BASE_URL}/tickets`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${sellerToken}`,
           },
           body: JSON.stringify({
-            businessName: 'Tester Electronics',
-            industry: 'Technology & E-Commerce',
-            tone: 'Professional & Friendly',
-            colorPreference: 'Modern & Vibrantly Colored',
-            versionName: 'Version 1 - Modern',
+            subject: 'Unable to connect Facebook page API',
+            category: 'Technical Issue',
+            priority: 'High',
+            description: 'Receiving authorization error code 403 when trying to fetch Facebook page comments.',
           }),
         });
-        const genBrandData = await genBrandRes.json();
-        if (!genBrandData.success || !genBrandData.data.logo.svgCode) {
-          throw new Error(`Brand kit generation failed: ${JSON.stringify(genBrandData)}`);
+        const ticketData = await ticketRes.json();
+        if (!ticketData.success || !ticketData.data.ticketId) {
+          throw new Error(`Support ticket creation failed: ${JSON.stringify(ticketData)}`);
         }
-        const brandKitId = genBrandData.data._id;
-        logTest('14. AI Brand Identity Generation (FR-2.1 - FR-2.4)', 'SUCCESS', `Generated logo & ${genBrandData.data.taglines.length} taglines in Bangla/English for ${genBrandData.data.questionnaire.businessName}`);
+        const createdTicket = ticketData.data;
+        logTest('14. Support Ticket - Create Ticket (FR-19.1)', 'SUCCESS', `Created ticket #${createdTicket.ticketId}`);
 
-        // Test 15: Set Active Brand Kit (FR-2.6)
-        const setActiveRes = await fetch(`${BASE_URL}/brand-kit/${brandKitId}/set-active`, {
+        // Test 15: Support Ticket System - Add Reply & Status Update (FR-19.2, FR-19.3)
+        const replyRes = await fetch(`${BASE_URL}/tickets/${createdTicket._id}/responses`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sellerToken}`,
+          },
+          body: JSON.stringify({
+            message: 'Attaching diagnostic error log screenshot.',
+          }),
+        });
+        const replyData = await replyRes.json();
+        if (!replyData.success || replyData.data.responses.length === 0) {
+          throw new Error(`Ticket response failed: ${JSON.stringify(replyData)}`);
+        }
+
+        const statusRes = await fetch(`${BASE_URL}/tickets/${createdTicket._id}/status`, {
           method: 'PUT',
-          headers: { 'Authorization': `Bearer ${sellerToken}` },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sellerToken}`,
+          },
+          body: JSON.stringify({ status: 'Resolved' }),
         });
-        const setActiveData = await setActiveRes.json();
-        if (!setActiveData.success || !setActiveData.data.isActive) {
-          throw new Error(`Set active brand kit failed: ${JSON.stringify(setActiveData)}`);
+        const statusData = await statusRes.json();
+        if (!statusData.success || statusData.data.status !== 'Resolved') {
+          throw new Error(`Ticket status update failed: ${JSON.stringify(statusData)}`);
         }
-        logTest('15. Set Active Brand Kit (FR-2.6)', 'SUCCESS', `Set version "${setActiveData.data.versionName}" as Active`);
+        logTest('15. Support Ticket - Response & Resolve Status (FR-19.2, FR-19.3)', 'SUCCESS', `Status updated to "${statusData.data.status}"`);
 
-        // Test 16: AI Caption Generation with Tone Selection (FR-3.1, FR-3.2)
-        const genCaptionRes = await fetch(`${BASE_URL}/content/generate-caption`, {
+        // Test 16: Support Ticket System - Rate Experience (FR-19.4)
+        const rateRes = await fetch(`${BASE_URL}/tickets/${createdTicket._id}/rate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${sellerToken}`,
           },
           body: JSON.stringify({
-            productId,
-            tone: 'Promotional',
+            stars: 5,
+            feedback: 'Super fast support resolution!',
           }),
         });
-        const genCaptionData = await genCaptionRes.json();
-        if (!genCaptionData.success || !genCaptionData.data.bn) {
-          throw new Error(`Caption generation failed: ${JSON.stringify(genCaptionData)}`);
+        const rateData = await rateRes.json();
+        if (!rateData.success || !rateData.data.rating.stars) {
+          throw new Error(`Support ticket rating failed: ${JSON.stringify(rateData)}`);
         }
-        logTest('16. AI Caption Generation & Tone Selection (FR-3.1, FR-3.2)', 'SUCCESS', `Generated promotional caption in Bangla & English with ${genCaptionData.data.hashtags.length} hashtags`);
+        logTest('16. Support Ticket - Rate Experience (FR-19.4)', 'SUCCESS', `Rated ⭐ ${rateData.data.rating.stars}/5 stars`);
 
-        // Test 17: Schedule Post Entry & Calendar Log (FR-3.3, FR-3.5)
-        const createPostRes = await fetch(`${BASE_URL}/content/posts`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sellerToken}`,
-          },
-          body: JSON.stringify({
-            title: 'Gaming Headset Promo Launch',
-            caption: { activeText: genCaptionData.data.activeText },
-            platforms: ['Facebook', 'Instagram'],
-            status: 'Scheduled',
-            scheduledAt: new Date(Date.now() + 60000).toISOString(), // 1 min from now
-          }),
-        });
-        const createPostData = await createPostRes.json();
-        if (!createPostData.success || createPostData.data.status !== 'Scheduled') {
-          throw new Error(`Post scheduling failed: ${JSON.stringify(createPostData)}`);
-        }
-        logTest('17. Content Calendar - Schedule Post Entry (FR-3.3, FR-3.5)', 'SUCCESS', `Scheduled post "${createPostData.data.title}" for ${createPostData.data.platforms.join(', ')}`);
-
-        // Test 18: Trigger Reminders & Auto-Publishing (FR-3.4)
-        const triggerRes = await fetch(`${BASE_URL}/content/posts/trigger-reminders`, {
-          method: 'POST',
+        // Test 17: Referral & Loyalty Program - Get Code & Link (FR-20.1)
+        const refRes = await fetch(`${BASE_URL}/referrals/my`, {
           headers: { 'Authorization': `Bearer ${sellerToken}` },
         });
-        const triggerData = await triggerRes.json();
-        if (!triggerData.success) {
-          throw new Error(`Trigger reminders failed: ${JSON.stringify(triggerData)}`);
+        const refData = await refRes.json();
+        if (!refData.success || !refData.data.referralCode) {
+          throw new Error(`Get referral info failed: ${JSON.stringify(refData)}`);
         }
-        logTest('18. Content Calendar - Send Reminders & Auto-Publish (FR-3.4)', 'SUCCESS', `Processed ${triggerData.processedCount} due scheduled posts`);
+        const sellerRefCode = refData.data.referralCode;
+        logTest('17. Referral Program - Generate Code & Link (FR-20.1)', 'SUCCESS', `Code: ${sellerRefCode}`);
 
-        // Test 19: Get Pre-built Banner Templates (FR-4.1)
-        const templatesRes = await fetch(`${BASE_URL}/templates`, {
-          headers: { 'Authorization': `Bearer ${sellerToken}` },
-        });
-        const templatesData = await templatesRes.json();
-        if (!templatesData.success || templatesData.data.length === 0) {
-          throw new Error(`Get templates failed: ${JSON.stringify(templatesData)}`);
-        }
-        logTest('19. Banner Editor - Pre-built Category Templates (FR-4.1)', 'SUCCESS', `Loaded ${templatesData.data.length} prebuilt poster templates`);
-
-        // Test 20: Save Custom Banner Template (FR-4.5)
-        const saveTmplRes = await fetch(`${BASE_URL}/templates`, {
+        // Test 18: Referral & Loyalty Program - Register Referee & Award Bonus Credits (FR-20.2)
+        const refereeRegRes = await fetch(`${BASE_URL}/auth/register`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sellerToken}`,
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: 'Custom Tech Discount Poster',
-            category: 'Custom',
-            dimensions: { width: 1080, height: 1080 },
-            elements: [
-              { id: '1', type: 'text', content: 'FLAT 50% OFF', x: 100, y: 100, color: '#ffffff', brandField: 'none' },
-              { id: '2', type: 'text', content: 'Tester Electronics', x: 100, y: 200, color: '#6366f1', brandField: 'businessName' },
-            ],
+            name: 'Referred Friend',
+            email: 'referee@brandbondhu.com',
+            phone: '01988776655',
+            password: 'password123',
+            role: 'seller',
+            businessName: 'Friend Fashion Store',
+            industry: 'Clothing & Apparel',
+            referralCode: sellerRefCode,
           }),
         });
-        const saveTmplData = await saveTmplRes.json();
-        if (!saveTmplData.success || !saveTmplData.data._id) {
-          throw new Error(`Save custom template failed: ${JSON.stringify(saveTmplData)}`);
+        const refereeRegData = await refereeRegRes.json();
+        const refereeOtp = refereeRegData.otp;
+
+        const refereeVerifyRes = await fetch(`${BASE_URL}/auth/verify-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'referee@brandbondhu.com', otp: refereeOtp }),
+        });
+        const refereeVerifyData = await refereeVerifyRes.json();
+        if (!refereeVerifyData.success) {
+          throw new Error(`Referee verification failed: ${JSON.stringify(refereeVerifyData)}`);
         }
-        logTest('20. Banner Editor - Save Custom Reuse Template (FR-4.5)', 'SUCCESS', `Saved custom template "${saveTmplData.data.title}"`);
+
+        // Verify credit bonuses were awarded
+        const sellerSub = await Subscription.findOne({ userId: sellerUser._id });
+        if (!sellerSub || sellerSub.credits.current < 35) { // Original 20 + 15 bonus
+          throw new Error(`Referrer bonus credit not awarded properly: current=${sellerSub?.credits?.current}`);
+        }
+        logTest('18. Referral Program - Signup with Code & Award Bonus Credits (FR-20.2)', 'SUCCESS', `Referrer credits increased to ${sellerSub.credits.current}`);
+
+        // Test 19: Referral & Loyalty Program - Check Referral Metrics & History (FR-20.3)
+        const refHistoryRes = await fetch(`${BASE_URL}/referrals/my`, {
+          headers: { 'Authorization': `Bearer ${sellerToken}` },
+        });
+        const refHistoryData = await refHistoryRes.json();
+        if (!refHistoryData.success || refHistoryData.data.stats.totalReferrals !== 1) {
+          throw new Error(`Referral history verification failed: ${JSON.stringify(refHistoryData)}`);
+        }
+        logTest('19. Referral Program - Metrics & History Timeline (FR-20.3)', 'SUCCESS', `Tracked ${refHistoryData.data.stats.totalReferrals} referral (+${refHistoryData.data.stats.totalBonusEarned} credits)`);
 
         console.log('\n--- CLEANING UP TEST ACCOUNTS ---\n');
         const sellerUser = await User.findOne({ email: 'tester@brandbondhu.com' });
         const designerUser = await User.findOne({ email: 'designer@brandbondhu.com' });
+        const refereeUser = await User.findOne({ email: 'referee@brandbondhu.com' });
 
         if (sellerUser) {
-          await User.deleteMany({ _id: { $in: [sellerUser._id, designerUser?._id] } });
+          const userIdsToClean = [sellerUser._id, designerUser?._id, refereeUser?._id].filter(Boolean);
+          await User.deleteMany({ _id: { $in: userIdsToClean } });
           await User.deleteMany({ ownerId: sellerUser._id });
-          await Subscription.deleteMany({ userId: sellerUser._id });
-          await Transaction.deleteMany({ userId: sellerUser._id });
-          await Notification.deleteMany({ userId: { $in: [sellerUser._id, designerUser?._id] } });
+          await Subscription.deleteMany({ userId: { $in: userIdsToClean } });
+          await Transaction.deleteMany({ userId: { $in: userIdsToClean } });
+          await Notification.deleteMany({ userId: { $in: userIdsToClean } });
           await Product.deleteMany({ businessId: sellerUser._id });
           await DesignJob.deleteMany({ sellerId: sellerUser._id });
           await AuditLog.deleteMany({ businessId: sellerUser._id });
-          await BrandKit.deleteMany({ businessId: sellerUser._id });
-          await ScheduledPost.deleteMany({ businessId: sellerUser._id });
-          await BannerTemplate.deleteMany({ businessId: sellerUser._id });
+          await SupportTicket.deleteMany({ userId: { $in: userIdsToClean } });
+          await Referral.deleteMany({ referrerId: sellerUser._id });
         }
         console.log('Cleanup finished successfully.');
 
-        console.log('\n🌟 ALL FR-2, FR-3, FR-4, FR-7, FR-13, FR-17 BACKEND TESTS PASSED SUCCESSFULLY! 🌟\n');
+        console.log('\n🌟 ALL BRANDBONDHU BACKEND AUTOMATED TESTS PASSED (FR-13, FR-7, FR-17, FR-19, FR-20)! 🌟\n');
         server.close(() => {
           process.exit(0);
         });
@@ -444,7 +443,7 @@ const runTests = async () => {
         try {
           const sellerUser = await User.findOne({ email: 'tester@brandbondhu.com' });
           if (sellerUser) {
-            await User.deleteMany({ email: { $in: ['tester@brandbondhu.com', 'designer@brandbondhu.com', 'collaborator@brandbondhu.com'] } });
+            await User.deleteMany({ email: { $in: ['tester@brandbondhu.com', 'designer@brandbondhu.com', 'collaborator@brandbondhu.com', 'referee@brandbondhu.com'] } });
             await User.deleteMany({ ownerId: sellerUser._id });
             await Subscription.deleteMany({ userId: sellerUser._id });
             await Transaction.deleteMany({ userId: sellerUser._id });
@@ -452,9 +451,8 @@ const runTests = async () => {
             await Product.deleteMany({ businessId: sellerUser._id });
             await DesignJob.deleteMany({ sellerId: sellerUser._id });
             await AuditLog.deleteMany({ businessId: sellerUser._id });
-            await BrandKit.deleteMany({ businessId: sellerUser._id });
-            await ScheduledPost.deleteMany({ businessId: sellerUser._id });
-            await BannerTemplate.deleteMany({ businessId: sellerUser._id });
+            await SupportTicket.deleteMany({ userId: sellerUser._id });
+            await Referral.deleteMany({ referrerId: sellerUser._id });
           }
         } catch (cleanupErr) {
           console.error('Cleanup on failure failed:', cleanupErr.message);

@@ -13,27 +13,14 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import marketplaceRoutes from './routes/marketplaceRoutes.js';
-import analyticsRoutes from './routes/analyticsRoutes.js';
-import brandKitRoutes from './routes/brandKitRoutes.js';
-import contentRoutes from './routes/contentRoutes.js';
-import templateRoutes from './routes/templateRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import gamificationRoutes from './routes/gamificationRoutes.js';
-import hashtagRoutes from './routes/hashtagRoutes.js';
-import styleGuideRoutes from './routes/styleGuideRoutes.js';
-import { seedPrebuiltTemplates } from './controllers/templateController.js';
-import { seedSubscriptionTiers } from './controllers/subscriptionController.js';
-import { seedDefaultAdmin } from './controllers/authController.js';
+import ticketRoutes from './routes/ticketRoutes.js';
+import referralRoutes from './routes/referralRoutes.js';
 
 // Load environment variables
 dotenv.config();
 
 // Connect to MongoDB
-connectDB().then(() => {
-  seedPrebuiltTemplates();
-  seedSubscriptionTiers();
-  seedDefaultAdmin();
-});
+connectDB();
 
 const app = express();
 
@@ -58,14 +45,8 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/brand-kit', brandKitRoutes);
-app.use('/api/content', contentRoutes);
-app.use('/api/templates', templateRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/gamification', gamificationRoutes);
-app.use('/api/hashtags', hashtagRoutes);
-app.use('/api/style-guide', styleGuideRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/referrals', referralRoutes);
 
 // Base API status route
 app.get('/api/health', (req, res) => {
@@ -98,12 +79,8 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-const isMain = process.argv[1] && (process.argv[1].endsWith('server.js') || process.argv[1].endsWith('server'));
-
-if (isMain) {
-  app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  });
-}
+const server = app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
 
 export default app;
