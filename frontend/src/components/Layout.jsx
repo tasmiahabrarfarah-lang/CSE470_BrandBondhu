@@ -2,16 +2,10 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 
-export const Layout = ({
-    children,
-    activeTab,
-    onTabChange,
-    subscription
-}) => {
+export const Layout = ({ activeTab, onTabChange, subscription, children }) => {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const creditsRemaining = subscription?.credits?.current ?? 0;
   const creditsTotal = subscription?.credits?.total ?? 20;
@@ -33,14 +27,7 @@ export const Layout = ({
   return (
     <div style={styles.container}>
       {/* Sidebar Navigation */}
-      <aside 
-        className="glass" 
-        style={{ 
-          ...styles.sidebar, 
-          transform: sidebarCollapsed ? 'translateX(-260px)' : 'none',
-          transition: 'transform 0.3s ease',
-        }}
-      >
+      <aside className="glass" style={styles.sidebar}>
         <div style={styles.brandBox}>
           <div style={styles.logoCircle}>B</div>
           <div>
@@ -168,21 +155,21 @@ export const Layout = ({
             </button>
           )}
 
-          {user?.role === 'admin' && (
-            <button 
-              style={{ ...styles.navItem, ...(activeTab === 'admin' ? styles.navItemActive : {}) }}
-              onClick={() => onTabChange('admin')}
-            >
-              🛠️ Admin Panel
-            </button>
-          )}
+          {/* Support Ticket / Help Desk System (FR-19) */}
+          <button 
+            style={{ ...styles.navItem, ...(activeTab === 'tickets' ? styles.navItemActive : {}) }}
+            onClick={() => onTabChange('tickets')}
+          >
+            🎧 Help Desk
+          </button>
 
-          {(user?.role === 'seller' || user?.role === 'collaborator') && (
+          {/* Referral & Loyalty Program (FR-20) - Sellers, Designers, Admins */}
+          {(user?.role === 'seller' || user?.role === 'designer' || user?.role === 'admin') && (
             <button 
-              style={{ ...styles.navItem, ...(activeTab === 'gamification' ? styles.navItemActive : {}) }}
-              onClick={() => onTabChange('gamification')}
+              style={{ ...styles.navItem, ...(activeTab === 'referrals' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('referrals')}
             >
-              🏆 Brand Score
+              🎁 Referrals
             </button>
           )}
 
@@ -203,35 +190,10 @@ export const Layout = ({
       </aside>
 
       {/* Main Content Area */}
-      <div 
-        style={{ 
-          ...styles.mainWrapper, 
-          marginLeft: sidebarCollapsed ? '0px' : '260px',
-          transition: 'margin-left 0.3s ease',
-        }}
-      >
+      <div style={styles.mainWrapper}>
         {/* Top Header */}
         <header className="glass" style={styles.header}>
           <div style={styles.headerLeft}>
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#fff',
-                fontSize: '1.2rem',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                marginRight: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              title={sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
-            >
-              {sidebarCollapsed ? '☰' : '◀'}
-            </button>
             {user?.role === 'seller' && subscription && (
               <div style={styles.creditStats}>
                 <span style={styles.creditLabel}>Credits:</span>
@@ -307,7 +269,7 @@ export const Layout = ({
               {user?.profilePicture ? (
                 <img src={user.profilePicture} alt="Profile" style={styles.profilePic} />
               ) : (
-                <div style={styles.avatarPlaceholder}>{user?.name?.slice(0, 2)?.toUpperCase() || ''}</div>
+                <div style={styles.avatarPlaceholder}>{user?.name?.slice(0, 2).toUpperCase()}</div>
               )}
               <div>
                 <div style={styles.profileName}>{user?.name}</div>
@@ -385,7 +347,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
-    overflowY: 'auto',
   },
   navItem: {
     display: 'flex',

@@ -333,274 +333,70 @@ export const api = {
       }).then(handleResponse),
   },
 
-  // Analytics, Sentiment & Competitors (FR-5, FR-6, FR-9)
-  analytics: {
-    getDashboardStats: () => 
-      fetch(`${BASE_URL}/analytics/dashboard`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    getSentimentAnalysis: () => 
-      fetch(`${BASE_URL}/analytics/sentiment`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    syncSentimentComments: () => 
-      fetch(`${BASE_URL}/analytics/sentiment/sync`, {
-        method: 'POST',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    getCompetitors: () => 
-      fetch(`${BASE_URL}/analytics/competitors`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    addCompetitor: (body) => 
-      fetch(`${BASE_URL}/analytics/competitors`, {
+  // Support Ticket / Help Desk System (FR-19)
+  tickets: {
+    create: (body) =>
+      fetch(`${BASE_URL}/tickets`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-  },
-
-  // AI Brand Identity Generation (FR-2)
-  brandKit: {
-    generate: (body) =>
-      fetch(`${BASE_URL}/brand-kit/generate`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       }).then(handleResponse),
 
-    getAll: () =>
-      fetch(`${BASE_URL}/brand-kit`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    getActive: () =>
-      fetch(`${BASE_URL}/brand-kit/active`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    setActive: (id) =>
-      fetch(`${BASE_URL}/brand-kit/${id}/set-active`, {
-        method: 'PUT',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    update: (id, body) =>
-      fetch(`${BASE_URL}/brand-kit/${id}`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-
-    delete: (id) =>
-      fetch(`${BASE_URL}/brand-kit/${id}`, {
-        method: 'DELETE',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    regenerateAsset: (id, assetType) =>
-      fetch(`${BASE_URL}/brand-kit/${id}/regenerate-asset`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ assetType })
-      }).then(handleResponse),
-  },
-
-  // Content Generation & Scheduling (FR-3)
-  content: {
-    generateCaption: (body) =>
-      fetch(`${BASE_URL}/content/generate-caption`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-
-    createPost: (body) =>
-      fetch(`${BASE_URL}/content/posts`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-
-    getPosts: (params = {}) => {
-      const query = new URLSearchParams(params).toString();
-      return fetch(`${BASE_URL}/content/posts${query ? `?${query}` : ''}`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse);
-    },
-
-    getPostById: (id) =>
-      fetch(`${BASE_URL}/content/posts/${id}`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    updatePost: (id, body) =>
-      fetch(`${BASE_URL}/content/posts/${id}`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-
-    deletePost: (id) =>
-      fetch(`${BASE_URL}/content/posts/${id}`, {
-        method: 'DELETE',
-        headers: getHeaders()
-      }).then(handleResponse),
-
-    triggerReminders: () =>
-      fetch(`${BASE_URL}/content/posts/trigger-reminders`, {
-        method: 'POST',
-        headers: getHeaders()
-      }).then(handleResponse),
-  },
-
-  // Poster/Banner Template Editor (FR-4)
-  templates: {
     getAll: (params = {}) => {
       const query = new URLSearchParams(params).toString();
-      return fetch(`${BASE_URL}/templates${query ? `?${query}` : ''}`, {
+      return fetch(`${BASE_URL}/tickets${query ? `?${query}` : ''}`, {
         method: 'GET',
-        headers: getHeaders()
+        headers: getHeaders(),
       }).then(handleResponse);
     },
 
     getById: (id) =>
-      fetch(`${BASE_URL}/templates/${id}`, {
+      fetch(`${BASE_URL}/tickets/${id}`, {
         method: 'GET',
-        headers: getHeaders()
+        headers: getHeaders(),
       }).then(handleResponse),
 
-    createCustom: (body) =>
-      fetch(`${BASE_URL}/templates`, {
+    addResponse: (id, body) =>
+      fetch(`${BASE_URL}/tickets/${id}/responses`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       }).then(handleResponse),
 
-    updateCustom: (id, body) =>
-      fetch(`${BASE_URL}/templates/${id}`, {
+    updateStatus: (id, status) =>
+      fetch(`${BASE_URL}/tickets/${id}/status`, {
         method: 'PUT',
         headers: getHeaders(),
-        body: JSON.stringify(body)
+        body: JSON.stringify({ status }),
       }).then(handleResponse),
 
-    deleteCustom: (id) =>
-      fetch(`${BASE_URL}/templates/${id}`, {
-        method: 'DELETE',
-        headers: getHeaders()
-      }).then(handleResponse),
-  },
-
-  // Admin Control Panel (FR-12)
-  admin: {
-    getUsers: (params = {}) => {
-      const query = new URLSearchParams(params).toString();
-      return fetch(`${BASE_URL}/admin/users${query ? `?${query}` : ''}`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse);
-    },
-    suspendUser: (id) =>
-      fetch(`${BASE_URL}/admin/users/${id}/suspend`, {
-        method: 'PUT',
-        headers: getHeaders()
-      }).then(handleResponse),
-    unsuspendUser: (id) =>
-      fetch(`${BASE_URL}/admin/users/${id}/unsuspend`, {
-        method: 'PUT',
-        headers: getHeaders()
-      }).then(handleResponse),
-    deleteUser: (id) =>
-      fetch(`${BASE_URL}/admin/users/${id}`, {
-        method: 'DELETE',
-        headers: getHeaders()
-      }).then(handleResponse),
-    getDisputes: () =>
-      fetch(`${BASE_URL}/admin/disputes`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-    resolveDispute: (id, body) =>
-      fetch(`${BASE_URL}/admin/disputes/${id}/resolve`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-    getAnalytics: () =>
-      fetch(`${BASE_URL}/admin/analytics`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-    updatePricingTier: (id, body) =>
-      fetch(`${BASE_URL}/admin/pricing-tiers/${id}`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-  },
-
-  // Gamification (Branding Score) (FR-8)
-  gamification: {
-    getProfile: () =>
-      fetch(`${BASE_URL}/gamification/profile`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-    toggleLeaderboard: (optIn) =>
-      fetch(`${BASE_URL}/gamification/leaderboard/toggle`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify({ optIn })
-      }).then(handleResponse),
-    getLeaderboard: () =>
-      fetch(`${BASE_URL}/gamification/leaderboard`, {
-        method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-  },
-
-  // Hashtag & SEO Suggestion Generator (FR-14)
-  hashtags: {
-    generate: (body) =>
-      fetch(`${BASE_URL}/hashtags/generate`, {
+    rate: (id, body) =>
+      fetch(`${BASE_URL}/tickets/${id}/rate`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       }).then(handleResponse),
-    getTemplates: () =>
-      fetch(`${BASE_URL}/hashtags/templates`, {
+
+    getStats: () =>
+      fetch(`${BASE_URL}/tickets/admin/stats`, {
         method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-    saveTemplate: (body) =>
-      fetch(`${BASE_URL}/hashtags/templates`, {
-        method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-    updateTemplate: (id, body) =>
-      fetch(`${BASE_URL}/hashtags/templates/${id}`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-    deleteTemplate: (id) =>
-      fetch(`${BASE_URL}/hashtags/templates/${id}`, {
-        method: 'DELETE',
-        headers: getHeaders()
       }).then(handleResponse),
   },
+
+  // Referral & Loyalty Program (FR-20)
+  referrals: {
+    getMyReferrals: () =>
+      fetch(`${BASE_URL}/referrals/my`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+
+    validateCode: (code) =>
+      fetch(`${BASE_URL}/referrals/validate/${code}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
 
   // FAQ Manager (FR-Group 2)
   faq: {
@@ -632,19 +428,10 @@ export const api = {
   styleGuide: {
     get: (brandKitId) =>
       fetch(`${BASE_URL}/style-guide${brandKitId ? `/${brandKitId}` : ''}`, {
+    getStats: () =>
+      fetch(`${BASE_URL}/referrals/admin/stats`, {
         method: 'GET',
-        headers: getHeaders()
-      }).then(handleResponse),
-    updateConfig: (brandKitId, body) =>
-      fetch(`${BASE_URL}/style-guide/${brandKitId}`, {
-        method: 'PUT',
         headers: getHeaders(),
-        body: JSON.stringify(body)
-      }).then(handleResponse),
-    exportPDF: (brandKitId) =>
-      fetch(`${BASE_URL}/style-guide/${brandKitId}/export`, {
-        method: 'GET',
-        headers: getHeaders()
       }).then(handleResponse),
   },
 };

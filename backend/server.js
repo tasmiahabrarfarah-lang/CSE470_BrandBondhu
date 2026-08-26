@@ -25,16 +25,14 @@ import faqRoutes from './routes/faqRoutes.js';
 import { seedPrebuiltTemplates } from './controllers/templateController.js';
 import { seedSubscriptionTiers } from './controllers/subscriptionController.js';
 import { seedDefaultAdmin } from './controllers/authController.js';
+import ticketRoutes from './routes/ticketRoutes.js';
+import referralRoutes from './routes/referralRoutes.js';
 
 // Load environment variables
 dotenv.config();
 
 // Connect to MongoDB
-connectDB().then(() => {
-  seedPrebuiltTemplates();
-  seedSubscriptionTiers();
-  seedDefaultAdmin();
-});
+connectDB();
 
 const app = express();
 
@@ -68,6 +66,8 @@ app.use('/api/gamification', gamificationRoutes);
 app.use('/api/hashtags', hashtagRoutes);
 app.use('/api/style-guide', styleGuideRoutes);
 app.use('/api/faq', faqRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/referrals', referralRoutes);
 
 // Base API status route
 app.get('/api/health', (req, res) => {
@@ -100,12 +100,8 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-const isMain = process.argv[1] && (process.argv[1].endsWith('server.js') || process.argv[1].endsWith('server'));
-
-if (isMain) {
-  app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  });
-}
+const server = app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
 
 export default app;
