@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import fs from 'fs';
 
 const connectDB = async () => {
   try {
@@ -9,8 +10,18 @@ const connectDB = async () => {
   } catch (error) {
     console.warn(`Local MongoDB not detected (${error.message}). Spinning up In-Memory MongoDB Server...`);
     try {
+      const dbDir = './database_persistent';
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+
       const { MongoMemoryServer } = await import('mongodb-memory-server');
-      const mongod = await MongoMemoryServer.create();
+      const mongod = await MongoMemoryServer.create({
+        instance: {
+          dbPath: dbDir,
+          storageEngine: 'wiredTiger',
+        }
+      });
       const uri = mongod.getUri();
       const conn = await mongoose.connect(uri);
       console.log(`In-Memory MongoDB Connected successfully at ${conn.connection.host}`);

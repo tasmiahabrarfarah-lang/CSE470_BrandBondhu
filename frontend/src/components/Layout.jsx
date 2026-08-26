@@ -19,7 +19,7 @@ export const Layout = ({ activeTab, onTabChange, subscription, children }) => {
 
   // Check collaborator permission helper
   const canAccess = (perm) => {
-    if (user?.role === 'seller' || user?.role === 'admin') return true;
+    if (user?.role === 'seller') return true;
     if (user?.role === 'collaborator' && user?.permissions?.includes(perm)) return true;
     return false;
   };
@@ -37,12 +37,14 @@ export const Layout = ({ activeTab, onTabChange, subscription, children }) => {
         </div>
 
         <nav style={styles.nav}>
-          <button 
-            style={{ ...styles.navItem, ...(activeTab === 'dashboard' ? styles.navItemActive : {}) }}
-            onClick={() => onTabChange('dashboard')}
-          >
-            📊 Dashboard
-          </button>
+          {user?.role !== 'admin' && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'dashboard' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('dashboard')}
+            >
+              📊 Dashboard
+            </button>
+          )}
 
           {/* AI Brand Identity Navigation (Sellers, Collaborators with 'brand_kit' permission) */}
           {(user?.role === 'seller' || canAccess('brand_kit')) && (
@@ -109,6 +111,12 @@ export const Layout = ({ activeTab, onTabChange, subscription, children }) => {
               >
                 🤖 FAQ Assistant
               </button>
+              <button 
+                style={{ ...styles.navItem, ...(activeTab === 'gamification' ? styles.navItemActive : {}) }}
+                onClick={() => onTabChange('gamification')}
+              >
+                🏆 Branding Score
+              </button>
             </>
           )}
 
@@ -122,8 +130,8 @@ export const Layout = ({ activeTab, onTabChange, subscription, children }) => {
             </button>
           )}
 
-          {/* Freelance Designer Marketplace Navigation (Sellers, Designers, Collaborators with 'marketplace' permission, Admin) */}
-          {(user?.role === 'seller' || user?.role === 'designer' || user?.role === 'admin' || canAccess('marketplace')) && (
+          {/* Freelance Designer Marketplace Navigation (Sellers, Designers, Collaborators with 'marketplace' permission) */}
+          {(user?.role === 'seller' || user?.role === 'designer' || canAccess('marketplace')) && (
             <button 
               style={{ ...styles.navItem, ...(activeTab === 'marketplace' ? styles.navItemActive : {}) }}
               onClick={() => onTabChange('marketplace')}
@@ -139,12 +147,23 @@ export const Layout = ({ activeTab, onTabChange, subscription, children }) => {
             👤 My Profile
           </button>
 
-          <button 
-            style={{ ...styles.navItem, ...(activeTab === 'subscriptions' ? styles.navItemActive : {}) }}
-            onClick={() => onTabChange('subscriptions')}
-          >
-            💳 Subscriptions
-          </button>
+          {(user?.role === 'seller' || user?.role === 'collaborator') && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'subscriptions' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('subscriptions')}
+            >
+              💳 Subscriptions
+            </button>
+          )}
+
+          {user?.role === 'admin' && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'admin' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('admin')}
+            >
+              🛠️ Admin Panel
+            </button>
+          )}
 
           {user?.role === 'seller' && (
             <button 
@@ -163,8 +182,8 @@ export const Layout = ({ activeTab, onTabChange, subscription, children }) => {
             🎧 Help Desk
           </button>
 
-          {/* Referral & Loyalty Program (FR-20) - Sellers, Designers, Admins */}
-          {(user?.role === 'seller' || user?.role === 'designer' || user?.role === 'admin') && (
+          {/* Referral & Loyalty Program (FR-20) - Sellers, Designers */}
+          {(user?.role === 'seller' || user?.role === 'designer') && (
             <button 
               style={{ ...styles.navItem, ...(activeTab === 'referrals' ? styles.navItemActive : {}) }}
               onClick={() => onTabChange('referrals')}
@@ -347,6 +366,8 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
+    overflowY: 'auto',
+    minHeight: 0,
   },
   navItem: {
     display: 'flex',
@@ -610,6 +631,7 @@ const styles = {
     flex: 1,
     padding: '32px',
     animation: 'fadeIn 0.3s ease-out forwards',
+    overflowX: 'auto',
   },
 };
 

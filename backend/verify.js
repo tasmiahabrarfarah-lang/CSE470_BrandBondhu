@@ -394,6 +394,7 @@ const runTests = async () => {
         }
 
         // Verify credit bonuses were awarded
+        const sellerUser = await User.findOne({ email: 'tester@brandbondhu.com' });
         const sellerSub = await Subscription.findOne({ userId: sellerUser._id });
         if (!sellerSub || sellerSub.credits.current < 35) { // Original 20 + 15 bonus
           throw new Error(`Referrer bonus credit not awarded properly: current=${sellerSub?.credits?.current}`);
@@ -411,7 +412,6 @@ const runTests = async () => {
         logTest('19. Referral Program - Metrics & History Timeline (FR-20.3)', 'SUCCESS', `Tracked ${refHistoryData.data.stats.totalReferrals} referral (+${refHistoryData.data.stats.totalBonusEarned} credits)`);
 
         console.log('\n--- CLEANING UP TEST ACCOUNTS ---\n');
-        const sellerUser = await User.findOne({ email: 'tester@brandbondhu.com' });
         const designerUser = await User.findOne({ email: 'designer@brandbondhu.com' });
         const refereeUser = await User.findOne({ email: 'referee@brandbondhu.com' });
 

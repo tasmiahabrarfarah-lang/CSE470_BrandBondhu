@@ -146,3 +146,20 @@ export const getTransactions = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @desc    Log payment OTP to terminal for mock payment completion
+// @route   POST /api/payments/send-otp
+// @access  Private (Seller only)
+export const sendPaymentOTP = async (req, res) => {
+  try {
+    const { phoneNumber, gateway, otp } = req.body;
+    console.log(`\n====================================================`);
+    console.log(`[MOCK PAYMENT GATEWAY - ${gateway.toUpperCase()}]`);
+    console.log(`Sent verification OTP code to account: ${phoneNumber}`);
+    console.log(`Verification Code (OTP): ${otp}`);
+    console.log(`====================================================\n`);
+    res.status(200).json({ success: true, message: 'Payment OTP printed to terminal successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

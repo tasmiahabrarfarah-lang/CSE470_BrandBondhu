@@ -34,7 +34,7 @@ const UserSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'active', 'deactivated'],
+      enum: ['pending', 'active', 'deactivated', 'suspended'],
       default: 'pending',
     },
     profilePicture: {
@@ -91,6 +91,30 @@ const UserSchema = new mongoose.Schema(
       ref: 'User',
       default: null,
     },
+    // Gamification & Leaderboard
+    brandingScore: {
+      type: Number,
+      default: 0,
+    },
+    streakDays: {
+      type: Number,
+      default: 0,
+    },
+    lastPostDate: {
+      type: Date,
+      default: null,
+    },
+    optInLeaderboard: {
+      type: Boolean,
+      default: false,
+    },
+    badges: [
+      {
+        name: { type: String, required: true },
+        description: { type: String, required: true },
+        awardedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -100,7 +124,7 @@ const UserSchema = new mongoose.Schema(
 // Hash password before saving
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
-    next();
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
