@@ -109,7 +109,7 @@ export const getTicketById = async (req, res) => {
     }
 
     // Access control
-    if (req.user.role !== 'admin' && ticket.userId?.toString() !== req.user.id.toString()) {
+    if (req.user.role !== 'admin' && ticket.userId?._id?.toString() !== req.user.id.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized to view this ticket' });
     }
 
