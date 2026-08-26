@@ -398,10 +398,12 @@ const styles = {
     color: '#94a3b8',
     backgroundColor: 'transparent',
     border: 'none',
+    borderLeft: '4px solid transparent',
     borderRadius: '10px',
     cursor: 'pointer',
     textAlign: 'left',
     transition: 'all 0.2s',
+    outline: 'none',
   },
   navItemActive: {
     color: '#fff',
