@@ -14,6 +14,15 @@ import { Collaborators } from './pages/Collaborators';
 import { Notifications } from './pages/Notifications';
 import { Products } from './pages/Products';
 import { Marketplace } from './pages/Marketplace';
+import { AnalyticsDashboard } from './pages/AnalyticsDashboard';
+import { BrandIdentity } from './pages/BrandIdentity';
+import { ContentManager } from './pages/ContentManager';
+import { BannerEditor } from './pages/BannerEditor';
+import { AdminPanel } from './pages/AdminPanel';
+import { Gamification } from './pages/Gamification';
+import { HashtagGenerator } from './pages/HashtagGenerator';
+import { BrandStyleGuide } from './pages/BrandStyleGuide';
+import { FAQManager } from './pages/FAQManager';
 import { SupportTickets } from './pages/SupportTickets';
 import { Referrals } from './pages/Referrals';
 import { Layout } from './components/Layout';
@@ -125,6 +134,10 @@ const InnerApp = () => {
         {activeTab === 'tickets' && <SupportTickets />}
         {activeTab === 'referrals' && <Referrals />}
         {activeTab === 'notifications' && <Notifications />}
+        {activeTab === 'analytics' && <AnalyticsDashboard />}
+        {activeTab === 'faq' && <FAQManager />}
+        {activeTab === 'admin' && <AdminPanel />}
+        {activeTab === 'gamification' && <Gamification />}
       </Layout>
     );
   }

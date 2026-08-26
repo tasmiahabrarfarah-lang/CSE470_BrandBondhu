@@ -44,6 +44,74 @@ export const Layout = ({ activeTab, onTabChange, subscription, children }) => {
             📊 Dashboard
           </button>
 
+          {/* AI Brand Identity Navigation (Sellers, Collaborators with 'brand_kit' permission) */}
+          {(user?.role === 'seller' || canAccess('brand_kit')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'brandkit' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('brandkit')}
+            >
+              ✨ AI Brand Identity
+            </button>
+          )}
+
+          {/* Brand Style Guide Export Navigation (FR-15) */}
+          {(user?.role === 'seller' || canAccess('brand_kit')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'styleguide' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('styleguide')}
+            >
+              📘 Brand Style Guide
+            </button>
+          )}
+
+          {/* Content Generation & Calendar Navigation (Sellers, Collaborators with 'content' permission) */}
+          {(user?.role === 'seller' || canAccess('content')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'content' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('content')}
+            >
+              📝 Content Calendar
+            </button>
+          )}
+
+          {/* Hashtag & SEO Suggestion Generator Navigation (FR-14) */}
+          {(user?.role === 'seller' || canAccess('content')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'hashtags' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('hashtags')}
+            >
+              #️⃣ Hashtag & SEO
+            </button>
+          )}
+
+          {/* Poster & Banner Template Editor Navigation (Sellers, Collaborators with 'content' permission) */}
+          {(user?.role === 'seller' || canAccess('content')) && (
+            <button 
+              style={{ ...styles.navItem, ...(activeTab === 'templates' ? styles.navItemActive : {}) }}
+              onClick={() => onTabChange('templates')}
+            >
+              🖼️ Banner Editor
+            </button>
+          )}
+
+          {/* Analytics Navigation (Sellers, Collaborators) */}
+          {(user?.role === 'seller' || canAccess('analytics')) && (
+            <>
+              <button 
+                style={{ ...styles.navItem, ...(activeTab === 'analytics' ? styles.navItemActive : {}) }}
+                onClick={() => onTabChange('analytics')}
+              >
+                📈 Analytics & Insights
+              </button>
+              <button 
+                style={{ ...styles.navItem, ...(activeTab === 'faq' ? styles.navItemActive : {}) }}
+                onClick={() => onTabChange('faq')}
+              >
+                🤖 FAQ Assistant
+              </button>
+            </>
+          )}
+
           {/* Product Catalog Navigation (Sellers, Collaborators with 'products' permission) */}
           {(user?.role === 'seller' || canAccess('products')) && (
             <button 
@@ -291,10 +359,12 @@ const styles = {
     color: '#94a3b8',
     backgroundColor: 'transparent',
     border: 'none',
+    borderLeft: '4px solid transparent',
     borderRadius: '10px',
     cursor: 'pointer',
     textAlign: 'left',
     transition: 'all 0.2s',
+    outline: 'none',
   },
   navItemActive: {
     color: '#fff',
