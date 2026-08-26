@@ -6,6 +6,7 @@ export const PaymentPortal = ({ transaction, onSuccess, onClose }) => {
   const [gateway, setGateway] = useState(transaction.paymentGateway);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
   const [pin, setPin] = useState('');
   const [cardDetails, setCardDetails] = useState({ name: '', number: '', expiry: '', cvv: '' });
   const [error, setError] = useState('');
@@ -30,14 +31,25 @@ export const PaymentPortal = ({ transaction, onSuccess, onClose }) => {
           setError('Please enter a valid mobile number');
           return;
         }
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        setGeneratedOtp(code);
         setProcessingMsg(`Sending OTP to ${phoneNumber}...`);
         setStep(4);
-        setTimeout(() => {
-          setStep(2);
-        }, 1500);
+        api.payments.sendOTP(phoneNumber, gateway, code)
+          .then(() => {
+            setStep(2);
+          })
+          .catch((err) => {
+            console.error('Failed to send payment OTP:', err.message);
+            setStep(2);
+          });
       } else if (step === 2) {
         if (!otp || otp.length < 6) {
           setError('Please enter the 6-digit OTP verification code');
+          return;
+        }
+        if (otp !== generatedOtp) {
+          setError('Invalid OTP code. Please enter the correct OTP code printed in the terminal.');
           return;
         }
         setStep(3);
@@ -187,9 +199,9 @@ export const PaymentPortal = ({ transaction, onSuccess, onClose }) => {
 
           {step === 2 && (
             <form onSubmit={handleNextStep} style={styles.form}>
-              <p style={styles.instruction}>A 6-digit verification code has been simulated and sent to your mobile.</p>
+              <p style={styles.instruction}>A 6-digit verification code has been printed to the backend terminal console logs.</p>
               <div className="form-group">
-                <label className="form-label">Verification OTP Code (Enter any 6 digits)</label>
+                <label className="form-label">Verification OTP Code (Check terminal console log)</label>
                 <input
                   type="text"
                   className="form-input"

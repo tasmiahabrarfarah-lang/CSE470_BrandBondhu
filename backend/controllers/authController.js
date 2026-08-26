@@ -240,6 +240,10 @@ export const login = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Your account is deactivated. Contact Support.' });
     }
 
+    if (user.status === 'suspended') {
+      return res.status(403).json({ success: false, message: 'Your account is suspended. Contact Support.' });
+    }
+
     // Check if password matches
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
@@ -349,3 +353,25 @@ export const deleteAccount = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Seed function for default admin (called by other seeding processes if needed, or imported in server.js)
+export const seedDefaultAdmin = async () => {
+  try {
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (!adminExists) {
+      console.log('Seeding default admin user...');
+      await User.create({
+        name: 'Default Admin',
+        email: 'admin@brandbondhu.com',
+        phone: '01900000000',
+        password: 'adminpassword123',
+        role: 'admin',
+        status: 'active',
+      });
+      console.log('Default admin user seeded successfully.');
+    }
+  } catch (error) {
+    console.error('Failed to seed default admin:', error.message);
+  }
+};
+

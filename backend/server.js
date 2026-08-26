@@ -32,7 +32,9 @@ import referralRoutes from './routes/referralRoutes.js';
 dotenv.config();
 
 // Connect to MongoDB
-connectDB();
+connectDB().then(() => {
+  seedDefaultAdmin();
+});
 
 const app = express();
 

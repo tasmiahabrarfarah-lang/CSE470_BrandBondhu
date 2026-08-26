@@ -7,6 +7,7 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { VerifyOTP } from './pages/VerifyOTP';
+import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { Subscriptions } from './pages/Subscriptions';
@@ -69,8 +70,12 @@ const InnerApp = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchSubscription();
+      if (user?.role === 'admin') {
+        setActiveTab('admin');
+      }
     } else {
       setSubscription(null);
+      setActiveTab('dashboard');
     }
   }, [isAuthenticated, user]);
 
@@ -95,7 +100,7 @@ const InnerApp = () => {
 
   if (currentPath === '/login') {
     return isAuthenticated ? (
-      <Dashboard subscription={subscription} refreshSub={fetchSubscription} />
+      <Dashboard subscription={subscription} refreshSub={fetchSubscription} onTabChange={handleDashboardTabChange} />
     ) : (
       <Login onNavigate={navigate} />
     );
@@ -103,7 +108,7 @@ const InnerApp = () => {
 
   if (currentPath === '/register') {
     return isAuthenticated ? (
-      <Dashboard subscription={subscription} refreshSub={fetchSubscription} />
+      <Dashboard subscription={subscription} refreshSub={fetchSubscription} onTabChange={handleDashboardTabChange} />
     ) : (
       <Register onNavigate={navigate} />
     );
@@ -113,31 +118,41 @@ const InnerApp = () => {
     return <VerifyOTP onNavigate={navigate} />;
   }
 
+  if (currentPath === '/forgot-password') {
+    return <ForgotPassword onNavigate={navigate} />;
+  }
+
   // Authenticated workspace routes
   if (isAuthenticated) {
+    const isAdmin = user?.role === 'admin';
     return (
       <Layout 
         activeTab={activeTab} 
         onTabChange={handleDashboardTabChange}
         subscription={subscription}
       >
-        {activeTab === 'dashboard' && (
-          <Dashboard subscription={subscription} refreshSub={fetchSubscription} />
+        {activeTab === 'dashboard' && !isAdmin && (
+          <Dashboard subscription={subscription} refreshSub={fetchSubscription} onTabChange={handleDashboardTabChange} />
         )}
-        {activeTab === 'products' && <Products />}
-        {activeTab === 'marketplace' && <Marketplace />}
+        {activeTab === 'brandkit' && !isAdmin && <BrandIdentity />}
+        {activeTab === 'styleguide' && !isAdmin && <BrandStyleGuide />}
+        {activeTab === 'content' && !isAdmin && <ContentManager />}
+        {activeTab === 'hashtags' && !isAdmin && <HashtagGenerator />}
+        {activeTab === 'templates' && !isAdmin && <BannerEditor />}
+        {activeTab === 'products' && !isAdmin && <Products />}
+        {activeTab === 'marketplace' && !isAdmin && <Marketplace />}
         {activeTab === 'profile' && <Profile />}
-        {activeTab === 'subscriptions' && (
+        {activeTab === 'subscriptions' && !isAdmin && (
           <Subscriptions subscription={subscription} refreshSub={fetchSubscription} />
         )}
-        {activeTab === 'collaborators' && <Collaborators />}
+        {activeTab === 'collaborators' && !isAdmin && <Collaborators />}
         {activeTab === 'tickets' && <SupportTickets />}
-        {activeTab === 'referrals' && <Referrals />}
+        {activeTab === 'referrals' && !isAdmin && <Referrals />}
         {activeTab === 'notifications' && <Notifications />}
-        {activeTab === 'analytics' && <AnalyticsDashboard />}
-        {activeTab === 'faq' && <FAQManager />}
-        {activeTab === 'admin' && <AdminPanel />}
-        {activeTab === 'gamification' && <Gamification />}
+        {activeTab === 'analytics' && !isAdmin && <AnalyticsDashboard />}
+        {activeTab === 'faq' && !isAdmin && <FAQManager />}
+        {activeTab === 'admin' && isAdmin && <AdminPanel />}
+        {activeTab === 'gamification' && !isAdmin && <Gamification />}
       </Layout>
     );
   }

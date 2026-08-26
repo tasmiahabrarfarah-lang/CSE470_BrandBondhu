@@ -285,6 +285,7 @@ export const seedPrebuiltTemplates = async () => {
 // @access  Private (Seller/Collaborator)
 export const getTemplates = async (req, res) => {
   try {
+    await seedPrebuiltTemplates();
     const { category } = req.query;
 
     const query = {

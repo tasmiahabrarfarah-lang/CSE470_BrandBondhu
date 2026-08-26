@@ -310,6 +310,13 @@ export const api = {
         method: 'GET',
         headers: getHeaders()
       }).then(handleResponse),
+
+    sendOTP: (phoneNumber, gateway, otp) =>
+      fetch(`${BASE_URL}/payments/send-otp`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ phoneNumber, gateway, otp })
+      }).then(handleResponse),
   },
 
   // Notifications (FR-11)
@@ -398,29 +405,36 @@ export const api = {
         headers: getHeaders(),
       }).then(handleResponse),
 
+    getStats: () =>
+      fetch(`${BASE_URL}/referrals/admin/stats`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+  },
+
   // FAQ Manager (FR-Group 2)
   faq: {
     getAll: () =>
       fetch(`${BASE_URL}/faq`, {
         method: 'GET',
-        headers: getHeaders()
+        headers: getHeaders(),
       }).then(handleResponse),
     create: (body) =>
       fetch(`${BASE_URL}/faq`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       }).then(handleResponse),
     update: (id, body) =>
       fetch(`${BASE_URL}/faq/${id}`, {
         method: 'PUT',
         headers: getHeaders(),
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       }).then(handleResponse),
     delete: (id) =>
       fetch(`${BASE_URL}/faq/${id}`, {
         method: 'DELETE',
-        headers: getHeaders()
+        headers: getHeaders(),
       }).then(handleResponse),
   },
 
@@ -428,10 +442,247 @@ export const api = {
   styleGuide: {
     get: (brandKitId) =>
       fetch(`${BASE_URL}/style-guide${brandKitId ? `/${brandKitId}` : ''}`, {
-    getStats: () =>
-      fetch(`${BASE_URL}/referrals/admin/stats`, {
         method: 'GET',
         headers: getHeaders(),
+      }).then(handleResponse),
+    updateConfig: (brandKitId, body) =>
+      fetch(`${BASE_URL}/style-guide/${brandKitId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+    exportPDF: (brandKitId) =>
+      fetch(`${BASE_URL}/style-guide/${brandKitId}/export`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+  },
+
+  // AI Brand Kit (FR-1 & FR-12)
+  brandKit: {
+    getAll: () =>
+      fetch(`${BASE_URL}/brand-kit`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    getActive: () =>
+      fetch(`${BASE_URL}/brand-kit/active`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    generate: (body) =>
+      fetch(`${BASE_URL}/brand-kit/generate`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+    setActive: (id) =>
+      fetch(`${BASE_URL}/brand-kit/${id}/set-active`, {
+        method: 'PUT',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    regenerateAsset: (id, assetType) =>
+      fetch(`${BASE_URL}/brand-kit/${id}/regenerate-asset`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ assetType }),
+      }).then(handleResponse),
+    delete: (id) =>
+      fetch(`${BASE_URL}/brand-kit/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    update: (id, body) =>
+      fetch(`${BASE_URL}/brand-kit/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+  },
+
+  // Content Calendar & Caption Generator (FR-2 & FR-8)
+  content: {
+    getPosts: (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      return fetch(`${BASE_URL}/content/posts${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse);
+    },
+    generateCaption: (body) =>
+      fetch(`${BASE_URL}/content/generate-caption`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+    createPost: (body) =>
+      fetch(`${BASE_URL}/content/posts`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+    updatePost: (id, body) =>
+      fetch(`${BASE_URL}/content/posts/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+    deletePost: (id) =>
+      fetch(`${BASE_URL}/content/posts/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    triggerReminders: () =>
+      fetch(`${BASE_URL}/content/posts/trigger-reminders`, {
+        method: 'POST',
+        headers: getHeaders(),
+      }).then(handleResponse),
+  },
+
+  // Visual Banner & Templates Editor (FR-4)
+  templates: {
+    getAll: (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      return fetch(`${BASE_URL}/templates${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse);
+    },
+    createCustom: (body) =>
+      fetch(`${BASE_URL}/templates`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+  },
+
+  // Analytics & Insights (FR-5, FR-6 & FR-9)
+  analytics: {
+    getDashboardStats: () =>
+      fetch(`${BASE_URL}/analytics/dashboard`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    getCompetitors: () =>
+      fetch(`${BASE_URL}/analytics/competitors`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    getSentimentAnalysis: () =>
+      fetch(`${BASE_URL}/analytics/sentiment`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    syncSentimentComments: () =>
+      fetch(`${BASE_URL}/analytics/sentiment/sync`, {
+        method: 'POST',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    addCompetitor: (body) =>
+      fetch(`${BASE_URL}/analytics/competitors`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+  },
+
+  // Hashtag & SEO Suggestions (FR-14)
+  hashtags: {
+    getTemplates: () =>
+      fetch(`${BASE_URL}/hashtags/templates`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    generate: (body) =>
+      fetch(`${BASE_URL}/hashtags/generate`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+    saveTemplate: (body) =>
+      fetch(`${BASE_URL}/hashtags/templates`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+    updateTemplate: (id, body) =>
+      fetch(`${BASE_URL}/hashtags/templates/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+    deleteTemplate: (id) =>
+      fetch(`${BASE_URL}/hashtags/templates/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      }).then(handleResponse),
+  },
+
+  // Gamification (FR-8)
+  gamification: {
+    getProfile: () =>
+      fetch(`${BASE_URL}/gamification/profile`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    getLeaderboard: () =>
+      fetch(`${BASE_URL}/gamification/leaderboard`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    toggleLeaderboard: (optIn) =>
+      fetch(`${BASE_URL}/gamification/leaderboard/toggle`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ optIn }),
+      }).then(handleResponse),
+  },
+
+  // Admin (FR-Group 1)
+  admin: {
+    getUsers: (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      return fetch(`${BASE_URL}/admin/users${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse);
+    },
+    getDisputes: () =>
+      fetch(`${BASE_URL}/admin/disputes`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    getAnalytics: () =>
+      fetch(`${BASE_URL}/admin/analytics`, {
+        method: 'GET',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    suspendUser: (id) =>
+      fetch(`${BASE_URL}/admin/users/${id}/suspend`, {
+        method: 'PUT',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    unsuspendUser: (id) =>
+      fetch(`${BASE_URL}/admin/users/${id}/unsuspend`, {
+        method: 'PUT',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    deleteUser: (id) =>
+      fetch(`${BASE_URL}/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      }).then(handleResponse),
+    resolveDispute: (id, body) =>
+      fetch(`${BASE_URL}/admin/disputes/${id}/resolve`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }).then(handleResponse),
+    updatePricingTier: (id, body) =>
+      fetch(`${BASE_URL}/admin/pricing-tiers/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
       }).then(handleResponse),
   },
 };
