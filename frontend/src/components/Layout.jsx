@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 
-export const Layout = ({ activeTab, onTabChange, subscription }) => {
+export const Layout = ({ activeTab, onTabChange, subscription, children }) => {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
