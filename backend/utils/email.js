@@ -1,4 +1,4 @@
-import * as Brevo from '@getbrevo/brevo';
+import { TransactionalEmailsApi, SendSmtpEmail } from '@getbrevo/brevo';
 
 export const sendEmail = async ({ to, subject, text, html }) => {
   console.log('----------------------------------------------------');
@@ -11,10 +11,10 @@ export const sendEmail = async ({ to, subject, text, html }) => {
   // If Brevo API key is configured, use Brevo HTTP API (works on Render - no SMTP port blocking)
   if (process.env.BREVO_API_KEY) {
     try {
-      const apiInstance = new Brevo.TransactionalEmailsApi();
+      const apiInstance = new TransactionalEmailsApi();
       apiInstance.authentications['apiKey'].apiKey = process.env.BREVO_API_KEY;
 
-      const sendSmtpEmail = new Brevo.SendSmtpEmail();
+      const sendSmtpEmail = new SendSmtpEmail();
       sendSmtpEmail.to = [{ email: to }];
       sendSmtpEmail.sender = {
         email: process.env.BREVO_FROM_EMAIL || 'noreply@gmail.com',
