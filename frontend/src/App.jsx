@@ -49,6 +49,7 @@ const InnerApp = () => {
   const navigate = (to) => {
     window.history.pushState({}, '', to);
     setCurrentPath(to);
+    window.dispatchEvent(new Event('popstate'));
   };
 
   // Sync subscription details

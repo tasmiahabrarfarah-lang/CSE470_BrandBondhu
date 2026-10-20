@@ -1,5 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 
-  (window.location.origin.includes('localhost') ? 'http://localhost:5000/api' : '/api');
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const getHeaders = () => {
   const headers = {
@@ -15,7 +14,10 @@ const getHeaders = () => {
 const handleResponse = async (response) => {
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
+    // Attach all response fields to the error so callers can inspect e.g. verificationRequired, email
+    const err = new Error(data.message || 'Something went wrong');
+    Object.assign(err, data);
+    throw err;
   }
   return data;
 };

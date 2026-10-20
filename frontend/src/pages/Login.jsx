@@ -16,10 +16,12 @@ export const Login = ({ onNavigate }) => {
     try {
       await login(email, password);
     } catch (err) {
-      if (err.message && err.message.includes('pending verification')) {
-        // Redirection handled in backend response or context
-        onNavigate(`/verify-otp?email=${encodeURIComponent(email)}`);
+      // Backend returns verificationRequired:true when account is pending OTP verification
+      if (err.verificationRequired) {
+        setError(null);
+        onNavigate(`/verify-otp?email=${encodeURIComponent(err.email || email)}`);
       }
+      // Other errors are already set in AuthContext via setError
     } finally {
       setSubmitting(false);
     }

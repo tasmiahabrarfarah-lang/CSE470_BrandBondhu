@@ -101,6 +101,7 @@ const runTests = async () => {
         });
         const desVerifyData = await desVerifyRes.json();
         const designerToken = desVerifyData.token;
+        const designerId = desVerifyData.user?.id || desVerifyData.user?._id;
 
         // Update designer profile with skills and hourly rate
         await fetch(`${BASE_URL}/profile`, {
@@ -176,7 +177,8 @@ const runTests = async () => {
         if (!browseData.success || browseData.data.length === 0) {
           throw new Error(`Browse designers failed: ${JSON.stringify(browseData)}`);
         }
-        const foundDesigner = browseData.data[0];
+        // Use the designer registered in this test run (matched by ID) to avoid stale-data mismatch
+        const foundDesigner = browseData.data.find(d => d._id === designerId) || browseData.data[0];
         logTest('7. Marketplace - Browse & Search Designers (FR-7.2)', 'SUCCESS', `Found designer: ${foundDesigner.name} (Rate: ৳${foundDesigner.portfolioInfo.hourlyRate}/hr)`);
 
         // Test 8: Designer Marketplace - Request Job & Escrow Hold (FR-7.3, FR-7.7)
@@ -206,6 +208,7 @@ const runTests = async () => {
           method: 'PUT',
           headers: { 'Authorization': `Bearer ${designerToken}` },
         });
+
 
         const deliverRes = await fetch(`${BASE_URL}/marketplace/jobs/${jobId}/deliver`, {
           method: 'PUT',

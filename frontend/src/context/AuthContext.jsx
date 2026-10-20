@@ -48,8 +48,15 @@ export const AuthProvider = ({ children, navigate }) => {
         navigate('/dashboard');
         return res;
       }
+      // Should not reach here (api throws on non-ok), but handle gracefully
+      const msg = res.message || 'Login failed';
+      setError(msg);
+      throw Object.assign(new Error(msg), res);
     } catch (err) {
-      setError(err.message);
+      // Don't show error for pending verification — caller (Login.jsx) handles the redirect
+      if (!err.verificationRequired) {
+        setError(err.message || 'Login failed');
+      }
       throw err;
     } finally {
       setLoading(false);
