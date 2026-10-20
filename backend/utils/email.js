@@ -1,4 +1,4 @@
-import { Resend } from 'resend';
+import * as Brevo from '@getbrevo/brevo';
 
 export const sendEmail = async ({ to, subject, text, html }) => {
   console.log('----------------------------------------------------');
@@ -8,30 +8,30 @@ export const sendEmail = async ({ to, subject, text, html }) => {
   console.log(`Body: ${text}`);
   console.log('----------------------------------------------------');
 
-  // If Resend API key is configured, use Resend (works on Render - no SMTP port blocking)
-  if (process.env.RESEND_API_KEY) {
+  // If Brevo API key is configured, use Brevo HTTP API (works on Render - no SMTP port blocking)
+  if (process.env.BREVO_API_KEY) {
     try {
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      const { data, error } = await resend.emails.send({
-        from: process.env.RESEND_FROM || 'onboarding@resend.dev',
-        to,
-        subject,
-        text,
-        html: html || `<p>${text}</p>`,
-      });
+      const apiInstance = new Brevo.TransactionalEmailsApi();
+      apiInstance.authentications['apiKey'].apiKey = process.env.BREVO_API_KEY;
 
-      if (error) {
-        console.error(`Resend Error: ${error.message}`);
-        return { simulated: true, to, subject };
-      }
+      const sendSmtpEmail = new Brevo.SendSmtpEmail();
+      sendSmtpEmail.to = [{ email: to }];
+      sendSmtpEmail.sender = {
+        email: process.env.BREVO_FROM_EMAIL || 'noreply@gmail.com',
+        name: process.env.BREVO_FROM_NAME || 'BrandBondhu',
+      };
+      sendSmtpEmail.subject = subject;
+      sendSmtpEmail.textContent = text;
+      sendSmtpEmail.htmlContent = html || `<p>${text}</p>`;
 
-      console.log(`Real Email Sent via Resend: ${data.id}`);
-      return data;
+      const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
+      console.log(`Real Email Sent via Brevo: ${result.body.messageId}`);
+      return result;
     } catch (error) {
-      console.error(`Resend Send Error: ${error.message}`);
+      console.error(`Brevo Send Error: ${error.message}`);
     }
   }
-  
+
   return { simulated: true, to, subject };
 };
 
