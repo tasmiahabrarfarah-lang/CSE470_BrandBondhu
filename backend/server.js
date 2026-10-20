@@ -43,6 +43,8 @@ const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   'http://localhost:5173',
   'http://localhost:3000',
+  // Production Vercel deployment
+  'https://cse-470-brand-bondhu.vercel.app',
 ];
 const corsOptions = {
   origin: (origin, callback) => {
