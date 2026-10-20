@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 import connectDB from './config/db.js';
@@ -92,12 +93,15 @@ app.get('/api/health', (req, res) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Production Static assets handler (Vercel/General deployment support)
+// Production Static assets handler (only when frontend is colocated, e.g. not on Render)
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
-  });
+  const frontendDist = path.join(__dirname, '../frontend/dist');
+  if (fs.existsSync(frontendDist)) {
+    app.use(express.static(frontendDist));
+    app.get('*', (req, res) => {
+      res.sendFile(path.resolve(frontendDist, 'index.html'));
+    });
+  }
 } else {
   app.get('/', (req, res) => {
     res.send('BrandBondhu API running in development mode');
