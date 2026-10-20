@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 export const sendEmail = async ({ to, subject, text, html }) => {
   console.log('----------------------------------------------------');
@@ -8,32 +8,27 @@ export const sendEmail = async ({ to, subject, text, html }) => {
   console.log(`Body: ${text}`);
   console.log('----------------------------------------------------');
 
-  // If credentials are configured in .env, attempt sending
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  // If Resend API key is configured, use Resend (works on Render - no SMTP port blocking)
+  if (process.env.RESEND_API_KEY) {
     try {
-      const port = parseInt(process.env.SMTP_PORT) || 587;
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port,
-        secure: port === 465, // true for 465 (SSL), false for 587 (TLS)
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
-
-      const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'noreply@brandbondhu.com',
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const { data, error } = await resend.emails.send({
+        from: process.env.RESEND_FROM || 'onboarding@resend.dev',
         to,
         subject,
         text,
-        html: html || text,
+        html: html || `<p>${text}</p>`,
       });
 
-      console.log(`Real Email Sent: ${info.messageId}`);
-      return info;
+      if (error) {
+        console.error(`Resend Error: ${error.message}`);
+        return { simulated: true, to, subject };
+      }
+
+      console.log(`Real Email Sent via Resend: ${data.id}`);
+      return data;
     } catch (error) {
-      console.error(`SMTP Send Error: ${error.message}`);
+      console.error(`Resend Send Error: ${error.message}`);
     }
   }
   
